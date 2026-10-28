@@ -1,29 +1,33 @@
-# Gym Tracker
+# PriorCenter
 
-An offline gym tracker for Android. Log workouts, follow a workout program or your
-coach's plan, track meals, water and progress. Your data stays on your phone.
+Download my apps. Pick an app, tap its download link on your phone, and install it.
 
-## Download
+| App | What it does | Download |
+|---|---|---|
+| **Gym Tracker** (Android) | Offline workout log, workout and nutrition programs, water and progress. Your data stays on your phone. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [all versions](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
 
-**[Get the latest APK](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/latest)**
+## Installing an Android app (APK)
 
-1. Open the link above on your Android phone.
-2. Under **Assets**, tap the `GymTracker-….apk` file.
-3. Open it and allow **Install unknown apps** for your browser when Android asks.
+1. Tap the app's download link on your Android phone.
+2. Open the downloaded file.
+3. When Android asks, allow **Install unknown apps** for your browser.
 
 New versions install over the old one and keep your data.
 
 ---
 
-# جیم ترکر
+# پرایر سنتر
 
-برنامه آفلاین ثبت تمرین برای اندروید. تمرین‌ها را ثبت کن، برنامه تمرینی و تغذیه‌ای
-مربی‌ات را دنبال کن، و آب و پیشرفتت را ببین. اطلاعاتت فقط روی گوشی خودت می‌ماند.
+برنامه‌های من را از اینجا دانلود کن. برنامه را انتخاب کن، لینک دانلودش را در گوشی بزن و نصبش کن.
 
-**[دانلود آخرین نسخه](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/latest)**
+| برنامه | کاربرد | دانلود |
+|---|---|---|
+| **جیم ترکر** (اندروید) | ثبت آفلاین تمرین، برنامه تمرینی و تغذیه‌ای، آب و پیشرفت. اطلاعاتت فقط روی گوشی خودت می‌ماند. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [همه نسخه‌ها](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
 
-۱. لینک بالا را در گوشی اندروید باز کن.
-۲. در بخش **Assets** روی فایل `GymTracker-….apk` بزن.
-۳. فایل را باز کن و وقتی اندروید پرسید، اجازه **نصب برنامه‌های ناشناس** را بده.
+## نصب برنامه اندروید (APK)
+
+۱. لینک دانلود برنامه را در گوشی اندروید بزن.
+۲. فایل دانلودشده را باز کن.
+۳. وقتی اندروید پرسید، اجازه **نصب برنامه‌های ناشناس** را برای مرورگرت بده.
 
 نسخه‌های جدید روی نسخه قبلی نصب می‌شوند و اطلاعاتت حفظ می‌شود.
