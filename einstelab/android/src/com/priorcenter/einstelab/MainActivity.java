@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.provider.Settings;
 import android.webkit.JavascriptInterface;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -39,6 +40,10 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new Object() {
             @JavascriptInterface
             public void setLang(String l) { Reminders.prefs(MainActivity.this).edit().putString("lang", l).apply(); }
+
+            // stays the same after a reinstall (same phone, same signing key), so a used key cannot be reused
+            @JavascriptInterface
+            public String deviceId() { return Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID); }
         }, "EinsteNative");
         setContentView(web);
         if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)

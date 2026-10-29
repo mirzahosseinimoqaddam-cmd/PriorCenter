@@ -14,7 +14,6 @@ javac -encoding UTF-8 -source 1.8 -target 1.8 -bootclasspath "$JAR" -classpath "
 cp build/base.apk build/unsigned.apk
 (cd build/dex && zip -q ../unsigned.apk classes.dex)
 "$BT/zipalign" -f -p 4 build/unsigned.apk build/aligned.apk
-keytool -genkeypair -keystore build/key.jks -storepass einstelab -keypass einstelab -alias einstelab \
-  -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=EinsteLab" >/dev/null 2>&1
-"$BT/apksigner" sign --ks build/key.jks --ks-pass pass:einstelab --key-pass pass:einstelab --out EinsteLab.apk build/aligned.apk
+# one fixed test key, so updates install over the old app and the phone id stays the same
+"$BT/apksigner" sign --ks einstelab-test.jks --ks-pass pass:einstelab --key-pass pass:einstelab --out EinsteLab.apk build/aligned.apk
 echo "Built $(pwd)/EinsteLab.apk"

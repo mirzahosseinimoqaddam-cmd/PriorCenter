@@ -13,7 +13,7 @@ Download my apps. Pick an app, tap its download link on your phone, and install 
 2. Open the downloaded file.
 3. When Android asks, allow **Install unknown apps** for your browser.
 
-New versions install over the old one and keep your data. For EinsteLab test builds, uninstall the old build first.
+New versions install over the old one and keep your data. EinsteLab updates install over the old build from now on.
 
 ## Installing an iPhone app (IPA)
 
@@ -40,7 +40,7 @@ With a free Apple ID the app must be re-installed every 7 days.
 ۲. فایل دانلودشده را باز کن.
 ۳. وقتی اندروید پرسید، اجازه **نصب برنامه‌های ناشناس** را برای مرورگرت بده.
 
-نسخه‌های جدید روی نسخه قبلی نصب می‌شوند و اطلاعاتت حفظ می‌شود. برای نسخه‌های آزمایشی انیشتلب، اول نسخهٔ قبلی را حذف کن.
+نسخه‌های جدید روی نسخه قبلی نصب می‌شوند و اطلاعاتت حفظ می‌شود. نسخه‌های جدید انیشتلب از این به بعد روی نسخهٔ قبلی نصب می‌شوند.
 
 ## نصب برنامه آیفون (IPA)
 
