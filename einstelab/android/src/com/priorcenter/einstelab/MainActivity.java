@@ -1,6 +1,10 @@
 package com.priorcenter.einstelab;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.webkit.JavascriptInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.webkit.ValueCallback;
@@ -31,7 +35,15 @@ public class MainActivity extends Activity {
                 return !r.getUrl().toString().startsWith("file:///android_asset/");
             }
         });
+        // the page reports its language so reminders come in the same language
+        web.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void setLang(String l) { Reminders.prefs(MainActivity.this).edit().putString("lang", l).apply(); }
+        }, "EinsteNative");
         setContentView(web);
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        Reminders.schedule(this);
         if (state != null) web.restoreState(state);
         else web.loadUrl("file:///android_asset/index.html");
     }

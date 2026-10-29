@@ -5,7 +5,7 @@ Download my apps. Pick an app, tap its download link on your phone, and install 
 | App | What it does | Download |
 |---|---|---|
 | **Gym Tracker** (Android) | Offline workout log, workout and nutrition programs, water and progress. Your data stays on your phone. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [all versions](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
-| **EinsteLab** (Android, test) | 2D physics labs in English and Farsi: magnetism, electric fields, charged particles, motion, optics and sound, with guided experiments checked against textbook formulas. Opens with an access key; each key works for 3 days. | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) |
+| **EinsteLab** (Android and iPhone, test) | 2D physics labs in English and Farsi: magnetism, electric fields, charged particles, motion, optics and sound, with guided experiments checked against textbook formulas. Opens with an access key; each key works for 3 days. | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) · [EinsteLab.ipa (iPhone)](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.ipa) |
 
 ## Installing an Android app (APK)
 
@@ -14,6 +14,14 @@ Download my apps. Pick an app, tap its download link on your phone, and install 
 3. When Android asks, allow **Install unknown apps** for your browser.
 
 New versions install over the old one and keep your data. For EinsteLab test builds, uninstall the old build first.
+
+## Installing an iPhone app (IPA)
+
+1. On a computer, install [Sideloadly](https://sideloadly.io) or [AltStore](https://altstore.io).
+2. Connect the iPhone, open the `.ipa` file in it and sign in with your Apple ID.
+3. On the iPhone, open Settings › General › VPN & Device Management and trust your Apple ID.
+
+With a free Apple ID the app must be re-installed every 7 days.
 
 ---
 
@@ -24,7 +32,7 @@ New versions install over the old one and keep your data. For EinsteLab test bui
 | برنامه | کاربرد | دانلود |
 |---|---|---|
 | **جیم ترکر** (اندروید) | ثبت آفلاین تمرین، برنامه تمرینی و تغذیه‌ای، آب و پیشرفت. اطلاعاتت فقط روی گوشی خودت می‌ماند. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [همه نسخه‌ها](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
-| **انیشتلب** (اندروید، آزمایشی) | آزمایشگاه‌های فیزیک دوبعدی به فارسی و انگلیسی: مغناطیس، میدان الکتریکی، ذرات باردار، حرکت، نورشناسی و صوت، با آزمایش‌های راهنما که با فرمول کتاب درسی سنجیده می‌شوند. با کلید دسترسی باز می‌شود؛ هر کلید سه روز کار می‌کند. | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) |
+| **انیشتلب** (اندروید و آیفون، آزمایشی) | آزمایشگاه‌های فیزیک دوبعدی به فارسی و انگلیسی: مغناطیس، میدان الکتریکی، ذرات باردار، حرکت، نورشناسی و صوت، با آزمایش‌های راهنما که با فرمول کتاب درسی سنجیده می‌شوند. با کلید دسترسی باز می‌شود؛ هر کلید سه روز کار می‌کند. | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) · [EinsteLab.ipa (iPhone)](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.ipa) |
 
 ## نصب برنامه اندروید (APK)
 
@@ -33,3 +41,11 @@ New versions install over the old one and keep your data. For EinsteLab test bui
 ۳. وقتی اندروید پرسید، اجازه **نصب برنامه‌های ناشناس** را برای مرورگرت بده.
 
 نسخه‌های جدید روی نسخه قبلی نصب می‌شوند و اطلاعاتت حفظ می‌شود. برای نسخه‌های آزمایشی انیشتلب، اول نسخهٔ قبلی را حذف کن.
+
+## نصب برنامه آیفون (IPA)
+
+۱. روی کامپیوتر [Sideloadly](https://sideloadly.io) یا [AltStore](https://altstore.io) را نصب کن.
+۲. آیفون را وصل کن، فایل `.ipa` را در آن باز کن و با Apple ID خودت وارد شو.
+۳. در آیفون به Settings › General › VPN & Device Management برو و به Apple ID خودت اعتماد کن.
+
+با Apple ID رایگان، برنامه را باید هر ۷ روز یک بار دوباره نصب کرد.

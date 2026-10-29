@@ -1,0 +1,6 @@
+Resources/index.html
+EinsteLab.xcodeproj/
+Info.plist
+build/
+Payload/
+*.ipa

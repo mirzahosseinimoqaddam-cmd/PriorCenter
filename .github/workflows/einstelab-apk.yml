@@ -1,4 +1,4 @@
-name: EinsteLab APK
+name: EinsteLab apps
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  android:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,13 +22,39 @@ jobs:
         run: bash einstelab/android/build.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: EinsteLab-apk
+          name: android
           path: einstelab/android/EinsteLab.apk
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build unsigned IPA
+        working-directory: einstelab/ios
+        run: |
+          brew install xcodegen
+          cp ../android/assets/index.html Resources/index.html
+          xcodegen generate
+          xcodebuild -project EinsteLab.xcodeproj -scheme EinsteLab -sdk iphoneos -configuration Release \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build
+          mkdir -p Payload && cp -R build/Build/Products/Release-iphoneos/EinsteLab.app Payload/
+          zip -qr EinsteLab.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios
+          path: einstelab/ios/EinsteLab.ipa
+
+  release:
+    needs: [android, ios]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
       - name: Publish as the latest test release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           gh release delete einstelab-latest --yes --cleanup-tag || true
-          gh release create einstelab-latest einstelab/android/EinsteLab.apk \
+          gh release create einstelab-latest android/EinsteLab.apk ios/EinsteLab.ipa \
             --target "${{ github.sha }}" --prerelease --title "EinsteLab (test build ${{ github.run_number }})" \
-            --notes "Test build of EinsteLab. Opens only with an access key; each key works for 3 days on this phone."
+            --notes "Test build of EinsteLab for Android (APK) and iPhone (unsigned IPA, install with Sideloadly or AltStore). Opens only with an access key; each key works for 3 days on the device."
