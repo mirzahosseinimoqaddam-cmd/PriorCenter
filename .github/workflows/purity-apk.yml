@@ -1,0 +1,99 @@
+name: Purity APK
+
+on:
+  push:
+    paths:
+      - "purity/**"
+      - ".github/workflows/purity-apk.yml"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the APK to the purity-latest release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: purity-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: purity
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Build release APKs (unsigned)
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Sign APKs
+        env:
+          KEYSTORE_B64: ${{ secrets.PURITY_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.PURITY_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PURITY_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
+          KS="$RUNNER_TEMP/purity.jks"
+          if [ -n "${KEYSTORE_B64:-}" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$KS"
+          else
+            echo "::warning::No PURITY_KEYSTORE_B64 secret set. Signing with a throw-away key, so this APK cannot update over a previous install. See purity/README.md ('Stable signing key')."
+            KEYSTORE_PASSWORD="$(openssl rand -hex 16)"
+            KEY_ALIAS="purity"
+            keytool -genkeypair -keystore "$KS" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" \
+              -keyalg RSA -keysize 4096 -validity 36500 -dname "CN=Purity"
+          fi
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          shopt -s nullglob
+          for apk in app/build/outputs/apk/release/*-unsigned.apk; do
+            base="$(basename "$apk" -unsigned.apk)"
+            case "$base" in
+              *universal*) name="Purity-universal.apk" ;;
+              *arm64-v8a*) name="Purity-arm64-v8a.apk" ;;
+              *armeabi-v7a*) name="Purity-armeabi-v7a.apk" ;;
+              *x86_64*) name="Purity-x86_64.apk" ;;
+              *x86*) name="Purity-x86.apk" ;;
+              *) name="Purity-$base.apk" ;;
+            esac
+            "$APKSIGNER" sign --ks "$KS" --ks-pass env:KEYSTORE_PASSWORD --ks-key-alias "$KEY_ALIAS" \
+              --out "$GITHUB_WORKSPACE/out/$name" "$apk"
+            "$APKSIGNER" verify "$GITHUB_WORKSPACE/out/$name"
+          done
+          ls -l "$GITHUB_WORKSPACE/out"
+          test -f "$GITHUB_WORKSPACE/out/Purity-universal.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Purity-apks
+          path: out/*.apk
+
+      - name: Publish to the purity-latest release
+        if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && inputs.publish)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          VERSION="$(grep -oP 'versionName = "\K[^"]+' purity/app/build.gradle.kts)"
+          gh release delete purity-latest --cleanup-tag --yes || true
+          gh release create purity-latest out/*.apk \
+            --title "Purity $VERSION" \
+            --notes "Purity $VERSION. Download Purity-universal.apk on your phone and install it. See purity/README.md for details." \
+            --target "$GITHUB_SHA"

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purity: chat bubble holding a three-node mesh. Kept inside the 66dp adaptive-icon safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M34,30h40a8,8 0 0,1 8,8v24a8,8 0 0,1 -8,8H52l-12,10v-10h-6a8,8 0 0,1 -8,-8V38a8,8 0 0,1 8,-8z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M42,56L54,42L66,56"
+        android:strokeColor="#0E7C6B"
+        android:strokeWidth="2.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M37.5,56a4.5,4.5 0 1,0 9,0a4.5,4.5 0 1,0 -9,0z"
+        android:fillColor="#0E7C6B" />
+    <path
+        android:pathData="M49.5,42a4.5,4.5 0 1,0 9,0a4.5,4.5 0 1,0 -9,0z"
+        android:fillColor="#0E7C6B" />
+    <path
+        android:pathData="M61.5,56a4.5,4.5 0 1,0 9,0a4.5,4.5 0 1,0 -9,0z"
+        android:fillColor="#0E7C6B" />
+</vector>
