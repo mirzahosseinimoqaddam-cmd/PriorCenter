@@ -2,7 +2,8 @@
 // Player progress, no DOM: per-game stats and play time, saved levels, streaks, XP levels, trophies, unlocks, reminder plan.
 for (const k of ['breakout', 'rocks', 'maze', 'lander', 'lights', 'invaders', 'knife']) E[k].lv = 1; // games that save the level you reached
 
-const FEATURED = ['pong', 'snake', 'blocks', 'pinball', 'slice', 'hockey', 'sudoku', 'ballsort', 'tunnel', 'pool', 'flap', 'crates'];
+const BEST = ['jumper', 'shmup', 'rocks', 'runner', 'invaders']; // the player's favourites: first in Featured, open from the start
+const FEATURED = [...BEST, 'pong', 'snake', 'blocks', 'pinball', 'slice', 'hockey', 'sudoku', 'ballsort', 'tunnel', 'pool', 'flap', 'crates'];
 const dayKey = (t = Date.now()) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') }; // local date
 const blank = () => ({ g: {}, days: {}, hours: [], xp: 0, plays: 0, time: 0, got: {}, made: 0, shared: 0, best: 0, hardWins: 0, vsWins: 0, dailies: 0, two: 0, mash: 0 });
 let PR = Object.assign(blank(), load('neon.prog', {}));

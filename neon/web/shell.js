@@ -122,6 +122,7 @@ function card(k, vs, big) {
   const c = vs[0], el = document.createElement('button'), open = isOpen(k), st = vs.reduce((a, v) => { const s = statOf(v.name); a.t += s.t; a.b = Math.max(a.b, s.b); return a }, { t: 0, b: 0 });
   el.className = 'card' + (big ? ' big' : '') + (open ? '' : ' locked'); el.style.setProperty('--c', palOf(c)[0]);
   el.append(prevCanvas(c));
+  if (BEST.includes(k)) el.insertAdjacentHTML('beforeend', '<span class=best>★ BEST</span>');
   el.insertAdjacentHTML('beforeend', `<div class=ct><b>${esc(groupTitle(k))}</b><small>${open ? (st.t ? '⏱ ' + fmtT(st.t) : esc(t(E[c.e].c))) + (st.b ? ' · ★' + st.b : '') : '🔒 ' + esc(t('locked')) + ' ' + unlockLevel(k)}</small></div>`);
   el.onclick = () => open ? openGame(k) : toast(`🔒 ${esc(t('locked'))} ${unlockLevel(k)}`, '#8a84b8');
   return el;

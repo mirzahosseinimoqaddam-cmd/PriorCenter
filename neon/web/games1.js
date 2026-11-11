@@ -142,7 +142,7 @@ E.breakout = {
 E.rocks = {
   t: 'Rocks', c: 'arcade', vs: 0, n: 1, v: [['NEON ROCKS', {}], ['ROCK STORM', { n: 3 }], ['ROCKS TURBO', { sp: 1.5 }], ['GIANT ROCKS', { mods: ['giant'], pal: 'INFERNO' }]],
   f(g) {
-    const K = g.K, s = { x: W / 2, y: H / 2, vx: 0, vy: 0, a: -PI / 2, inv: 2 }; let rocks = [], bul = [], lives = 3, wave = g.lv0 || 0, ft = 0;
+    const K = g.K, s = { x: W / 2, y: H / 2, vx: 0, vy: 0, a: -PI / 2, inv: 2 }; let rocks = [], bul = [], lives = 3, wave = g.lv0 || 0, ft = 0, ups = [], tri = 0, shield = 0;
     const rock = (x, y, r) => ({ x, y, r, vx: rnd(-60, 60) * g.sp, vy: rnd(-60, 60) * g.sp, a: 0, va: rnd(-1, 1), sh: Array.from({ length: 9 }, () => rnd(.75, 1.15)) });
     const next = () => { g.level = wave; wave++; for (let i = 0; i < 2 + wave + g.n; i++) { const e = rnd(1) < .5; rocks.push(rock(e ? 0 : rnd(W), e ? rnd(H) : 0, 40 * g.sz)) } };
     const wr = o => { o.x = (o.x + W) % W; o.y = (o.y + H) % H };
@@ -154,7 +154,7 @@ E.rocks = {
       if (!rocks.length) next();
       if ((ft -= dt) <= 0 && rocks.length) {
         const t = rocks.reduce((a, r) => hyp(r.x - s.x, r.y - s.y) < hyp(a.x - s.x, a.y - s.y) ? r : a), an = atan2(t.y - s.y, t.x - s.x);
-        bul.push({ x: s.x, y: s.y, vx: cos(an) * 520, vy: sin(an) * 520, l: .8 }); ft = .2; sfx(900, .03, 'square', .02);
+        for (const o of tri > 0 ? [-.2, 0, .2] : [0]) bul.push({ x: s.x, y: s.y, vx: cos(an + o) * 520, vy: sin(an + o) * 520, l: .8 }); ft = .2; sfx(900, .03, 'square', .02);
       }
       for (const b of bul) { b.x += b.vx * dt; b.y += b.vy * dt; b.l -= dt; wr(b) }
       const born = [];
@@ -162,11 +162,16 @@ E.rocks = {
         r.x += r.vx * dt; r.y += r.vy * dt; r.a += r.va * dt; wr(r);
         for (const b of bul) if (b.l > 0 && hyp(b.x - r.x, b.y - r.y) < r.r) {
           b.l = 0; r.dead = 1; g.score += r.r > 30 ? 20 : r.r > 15 ? 50 : 100; boom(r.x, r.y, K.c, 12); sfx(160, .1, 'sawtooth');
-          if (r.r > 14) born.push(rock(r.x, r.y, r.r / 2), rock(r.x, r.y, r.r / 2)); break;
+          if (r.r > 14) born.push(rock(r.x, r.y, r.r / 2), rock(r.x, r.y, r.r / 2)); if (r.r > 30 && rnd() < .2) ups.push({ x: r.x, y: r.y, k: pick(['T', 'T', 'S', 'S', '+']), l: 8 }); break;
         }
+        if (!r.dead && s.inv <= 0 && shield > 0 && hyp(r.x - s.x, r.y - s.y) < r.r + 22) { r.dead = 1; shield = 0; boom(r.x, r.y, K.d, 30); if (r.r > 14) born.push(rock(r.x, r.y, r.r / 2), rock(r.x, r.y, r.r / 2)) } // the shield takes one hit
         if (!r.dead && s.inv <= 0 && hyp(r.x - s.x, r.y - s.y) < r.r + 8) { s.inv = 2; boom(s.x, s.y, K.a, 40, 250); buzz(100); if (--lives <= 0) lose(g) }
       }
       rocks = rocks.filter(r => !r.dead).concat(born); bul = bul.filter(b => b.l > 0);
+      tri -= dt; shield -= dt;
+      for (const u of ups) { u.l -= dt; if (hyp(u.x - s.x, u.y - s.y) < 22) { u.l = 0; if (u.k == 'T') tri = 8; else if (u.k == 'S') shield = 8; else lives = Math.min(5, lives + 1); sfx(1400, .2, 'triangle'); boom(s.x, s.y, K.d, 16) } if (u.l > 0 && (u.l > 2 || (u.l * 6 | 0) % 2)) { ci(u.x, u.y, 12, K.d, 1, 2); tx(u.k, u.x, u.y + 1, 13, '#fff') } }
+      ups = ups.filter(u => u.l > 0);
+      if (shield > 0) ci(s.x, s.y, 20, K.d, 0, 2);
       for (const r of rocks) pg(r.sh.flatMap((k, i) => { const t = r.a + i * TAU / 9; return [r.x + cos(t) * r.r * k, r.y + sin(t) * r.r * k] }), K.c);
       for (const b of bul) ln(b.x, b.y, b.x - b.vx * .02, b.y - b.vy * .02, K.d, 3);
       if (s.inv <= 0 || (s.inv * 8 | 0) % 2) pg([s.x + cos(s.a) * 14, s.y + sin(s.a) * 14, s.x + cos(s.a + 2.5) * 10, s.y + sin(s.a + 2.5) * 10, s.x + cos(s.a - 2.5) * 10, s.y + sin(s.a - 2.5) * 10], K.a, 1, 1);
@@ -250,31 +255,37 @@ E.dodge = {
 E.shmup = {
   t: 'Shooter', c: 'arcade', vs: 0, n: 1, v: [['NEON STRIKER', {}], ['STRIKER SWARM', { n: 3 }], ['STRIKER HELL', { sp: 1.4, n: 2, pal: 'BLOOD' }], ['STRIKER GHOST', { mods: ['ghost'], pal: 'ULTRA' }], ['STRIKER RAINBOW', { mods: ['rainbow'] }]],
   f(g) {
-    const K = g.K, s = { x: W / 2, y: 560, inv: 1.5 }; let bul = [], eb = [], en = [], ft = 0, wt = 1, wave = 0, lives = 3;
+    const K = g.K, s = { x: W / 2, y: 560, inv: 1.5 }; let bul = [], eb = [], en = [], ft = 0, wt = 1, wave = 0, lives = 3, pow = 1, gems = [];
     return dt => {
       const I = P[0];
       if (I.tx != null) { s.x += (I.tx - s.x) * Math.min(1, dt * 14); s.y += (I.ty - 60 - s.y) * Math.min(1, dt * 14) } else { s.x += I.x * 330 * dt; s.y += I.y * 330 * dt }
       s.x = clamp(s.x, 14, W - 14); s.y = clamp(s.y, 200, H - 20); s.inv -= dt;
-      if ((ft -= dt) <= 0) { ft = .14; bul.push({ x: s.x - 6, y: s.y - 14 }, { x: s.x + 6, y: s.y - 14 }); sfx(1200, .02, 'square', .015) }
+      if ((ft -= dt) <= 0) { ft = .14; bul.push({ x: s.x - 6, y: s.y - 14, vx: 0 }, { x: s.x + 6, y: s.y - 14, vx: 0 }); if (pow > 1) bul.push({ x: s.x - 10, y: s.y - 8, vx: -140 }, { x: s.x + 10, y: s.y - 8, vx: 140 }); if (pow > 2) bul.push({ x: s.x, y: s.y - 18, vx: 0 }); sfx(1200, .02, 'square', .015) }
       if ((wt -= dt) <= 0 || (!en.length && wt > 1)) {
         wave++; wt = 6 / g.sp; const n = 4 + g.n + (wave >> 1), bx = rnd(60, W - 60), kind = wave % 3;
-        for (let i = 0; i < n; i++) en.push({ bx: kind == 2 ? 30 + i * (W - 60) / (n - 1 || 1) : bx, x: 0, y: -30 - i * 34, vy: rnd(70, 95) * g.sp, ph: i * .7, hp: 1 + (wave / 4 | 0), kind, t: rnd(1, 3) });
+        if (wave % 5 == 0) { en.push({ boss: 1, bx: W / 2, x: W / 2, y: -40, vy: 40, ph: 0, hp: 40 + wave * 5, max: 40 + wave * 5, kind: 0, t: 1.5 }); wt = 99 } // every 5th wave: a boss
+        else for (let i = 0; i < n; i++) en.push({ bx: kind == 2 ? 30 + i * (W - 60) / (n - 1 || 1) : bx, x: 0, y: -30 - i * 34, vy: rnd(70, 95) * g.sp, ph: i * .7, hp: 1 + (wave / 4 | 0), kind, t: rnd(1, 3) });
       }
-      for (const b of bul) b.y -= 620 * dt;
+      for (const b of bul) { b.y -= 620 * dt; b.x += b.vx * dt }
       for (const e of en) {
+        if (e.boss) { e.y = Math.min(110, e.y + e.vy * dt); e.ph += dt; e.x = W / 2 + sin(e.ph) * 120; if ((e.t -= dt) <= 0) { e.t = 1.1 / g.sp; for (let k = -2; k <= 2; k++) { const a = PI / 2 + k * .25; eb.push({ x: e.x, y: e.y + 20, vx: cos(a) * 170 * g.sp, vy: sin(a) * 170 * g.sp }) } }
+          for (const b of bul) if (!b.d && abs(b.x - e.x) < 40 && abs(b.y - e.y) < 24) { b.d = 1; e.hp--; if (e.hp <= 0) { e.dead = 1; g.score += 500; wt = 1; boom(e.x, e.y, K.c, 80, 360); gems.push({ x: e.x, y: e.y }) } }
+          pg([e.x - 44, e.y - 10, e.x - 20, e.y - 26, e.x + 20, e.y - 26, e.x + 44, e.y - 10, e.x + 20, e.y + 22, e.x - 20, e.y + 22], K.c, 1, 1, 3); rc(60, 50, 240, 6, K.c); rc(60, 50, 240 * e.hp / e.max, 6, K.c, 2); continue }
         e.y += e.vy * dt; e.ph += dt * 2; e.x = e.bx + (e.kind == 2 ? 0 : sin(e.ph) * (e.kind ? 110 : 60));
         if ((e.t -= dt) <= 0 && e.y > 0) { e.t = rnd(1.4, 3) / g.sp; const a = atan2(s.y - e.y, s.x - e.x); eb.push({ x: e.x, y: e.y, vx: cos(a) * 190 * g.sp, vy: sin(a) * 190 * g.sp }) }
-        for (const b of bul) if (!b.d && abs(b.x - e.x) < 15 && abs(b.y - e.y) < 15) { b.d = 1; if (--e.hp <= 0) { e.dead = 1; g.score += 25; boom(e.x, e.y, K.c, 14); sfx(200, .08, 'sawtooth') } }
+        for (const b of bul) if (!b.d && abs(b.x - e.x) < 15 && abs(b.y - e.y) < 15) { b.d = 1; if (--e.hp <= 0) { e.dead = 1; g.score += 25; boom(e.x, e.y, K.c, 14); sfx(200, .08, 'sawtooth'); if (rnd() < .08) gems.push({ x: e.x, y: e.y }) } }
         if (!e.dead && s.inv <= 0 && hyp(e.x - s.x, e.y - s.y) < 22) { e.dead = 1; hurt() }
         pg(poly(e.x, e.y, 14, 3, PI / 2), K.c, 1, e.hp > 1 ? .6 : 1);
       }
-      function hurt() { s.inv = 1.5; boom(s.x, s.y, K.a, 40, 250); buzz(100); if (--lives <= 0) lose(g) }
+      function hurt() { s.inv = 1.5; pow = Math.max(1, pow - 1); boom(s.x, s.y, K.a, 40, 250); buzz(100); if (--lives <= 0) lose(g) }
+      for (const m of gems) { m.y += 90 * dt; if (hyp(m.x - s.x, m.y - s.y) < 22) { m.y = 1e4; pow = Math.min(3, pow + 1); g.score += 50; sfx(1400, .2, 'triangle'); boom(s.x, s.y, K.d, 16) } pg(poly(m.x, m.y, 9, 4, performance.now() / 300), K.d, 1, 2) }
+      gems = gems.filter(m => m.y < H + 20);
       for (const b of eb) { b.x += b.vx * dt; b.y += b.vy * dt; if (s.inv <= 0 && hyp(b.x - s.x, b.y - s.y) < 10) { b.y = 1e4; hurt() } ci(b.x, b.y, 4, K.d, 1) }
       en = en.filter(e => !e.dead && e.y < H + 40); bul = bul.filter(b => !b.d && b.y > -20); eb = eb.filter(b => b.y < H + 10 && b.y > -10 && b.x > -10 && b.x < W + 10);
       for (const b of bul) ln(b.x, b.y, b.x, b.y + 10, K.b, 3);
       if (s.inv <= 0 || (s.inv * 8 | 0) % 2) { pg([s.x, s.y - 16, s.x + 13, s.y + 12, s.x, s.y + 5, s.x - 13, s.y + 12], K.a, 1, 1); ln(s.x, s.y + 8, s.x, s.y + 16 + rnd(8), K.e, 3) }
       for (let i = 0; i < lives; i++) ci(W - 14 - i * 16, 40, 5, K.a, 1);
-      g.hud = `WAVE ${wave} · ${g.score}`;
+      g.hud = `WAVE ${wave} · ${'▲'.repeat(pow)} · ${g.score}`;
     };
   }
 };

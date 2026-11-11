@@ -5,14 +5,15 @@ E.maze = {
   t: 'Maze', c: 'arcade', vs: 0, n: 2, v: [['NEON MAZE', {}], ['MAZE HUNTERS', { n: 4 }], ['MAZE CALM', { n: 1, sp: .8, pal: 'MINT' }], ['MAZE MIRROR', { mods: ['mirror'] }], ['MAZE DRUNK', { mods: ['drunk'], pal: 'ULTRA' }]],
   f(g) {
     const K = g.K, C = 9, R = 15, Z = 36, X0 = 18, Y0 = 60, BIT = { u: 1, r: 2, d: 4, l: 8 }, OPP = { u: 'd', d: 'u', l: 'r', r: 'l' };
-    let wl, dots, pl, ch, lvl = g.lv0 || 0;
+    let wl, dots, pl, ch, lvl = g.lv0 || 0, lives = 3, ready = 2, safe = 0;
     const build = () => {
       g.level = lvl; wl = new Array(C * R).fill(15); const seen = new Set([0]), st = [0];
       while (st.length) { const c = st[st.length - 1], x = c % C, y = c / C | 0; const nb = Object.entries(DIRS).filter(([, [dx, dy]]) => x + dx >= 0 && x + dx < C && y + dy >= 0 && y + dy < R && !seen.has((y + dy) * C + x + dx)); if (!nb.length) { st.pop(); continue } const [d, [dx, dy]] = pick(nb), n = (y + dy) * C + x + dx; wl[c] &= ~BIT[d]; wl[n] &= ~BIT[OPP[d]]; seen.add(n); st.push(n) }
       for (let i = 0; i < 25; i++) { const x = ri(1, C - 2), y = ri(1, R - 2), d = pick(['r', 'd']); wl[y * C + x] &= ~BIT[d]; const [dx, dy] = DIRS[d]; wl[(y + dy) * C + x + dx] &= ~BIT[OPP[d]] }
       dots = new Set(Array.from({ length: C * R }, (_, i) => i)); pl = { c: (R - 1) * C + 4, t: 0, d: '', nd: '', from: (R - 1) * C + 4 }; dots.delete(pl.c);
-      ch = Array.from({ length: g.n + (lvl >> 1) }, (_, i) => ({ c: i % 2 ? C - 1 : 0, from: i % 2 ? C - 1 : 0, t: 0, d: '' }));
+      spawnCh(); ready = 2;
     };
+    const spawnCh = () => { ch = Array.from({ length: Math.min(5, g.n + (lvl >> 1)) }, (_, i) => ({ c: i % 2 ? C - 1 : 0, from: i % 2 ? C - 1 : 0, t: 0, d: '' })) };
     build();
     const can = (c, d) => d && !(wl[c] & BIT[d]);
     const step = (c, d) => c + DIRS[d][0] + DIRS[d][1] * C;
@@ -24,14 +25,18 @@ E.maze = {
       mv(pl, 5 * g.sp, dt, () => can(pl.c, pl.nd) ? pl.nd : can(pl.c, pl.d) ? pl.d : '');
       if (pl.t > .5 && dots.delete(pl.c)) { g.score += 10; sfx(880 + (g.score % 50) * 4, .03, 'triangle', .02) }
       if (pl.from == pl.c && dots.delete(pl.c)) g.score += 10;
-      for (const h of ch) mv(h, (3 + lvl * .3) * g.sp, dt, () => rnd() < .65 ? bfs(h.c, pl.c) : pick([...'urdl'].filter(d => can(h.c, d) && d != OPP[h.d]).concat([''])) || pick([...'urdl'].filter(d => can(h.c, d))));
+      // chasers wait 2 s at the start, stay slower than you, and hunt harder each level
+      ready -= dt; safe -= dt; const hunt = Math.min(.7, .3 + lvl * .06 + (g.diff - 1) * .1);
+      if (ready <= 0) for (const h of ch) mv(h, Math.min(4.4, 2.6 + lvl * .2) * g.sp, dt, () => rnd() < hunt ? bfs(h.c, pl.c) : pick([...'urdl'].filter(d => can(h.c, d) && d != OPP[h.d]).concat([''])) || pick([...'urdl'].filter(d => can(h.c, d))));
       const [px, py] = pos(pl);
-      for (const h of ch) { const [hx, hy] = pos(h); if (hyp(hx - px, hy - py) < Z * .55) { boom(px, py, K.a, 50, 250); lose(g) } }
+      if (safe <= 0 && ready <= 0) for (const h of ch) { const [hx, hy] = pos(h); if (hyp(hx - px, hy - py) < Z * .45) { boom(px, py, K.a, 50, 250); buzz(120); sfx(150, .4, 'sawtooth'); if (--lives <= 0) { lose(g); break } pl.c = pl.from = (R - 1) * C + 4; pl.t = 0; pl.d = pl.nd = ''; spawnCh(); ready = 1.5; safe = 1.5; break } } // a hit costs a life, not the game
       if (!dots.size) { lvl++; g.score += 500; sfx(1200, .4, 'triangle'); build() }
       for (let c = 0; c < C * R; c++) { const x = X0 + (c % C) * Z, y = Y0 + (c / C | 0) * Z, w = wl[c]; if (w & 1) ln(x, y, x + Z, y, K.e, 2); if (w & 8) ln(x, y, x, y + Z, K.e, 2); if ((w & 2) && c % C == C - 1) ln(x + Z, y, x + Z, y + Z, K.e, 2); if ((w & 4) && (c / C | 0) == R - 1) ln(x, y + Z, x + Z, y + Z, K.e, 2) }
       for (const c of dots) ci(X0 + (c % C) * Z + Z / 2, Y0 + (c / C | 0) * Z + Z / 2, 2.5, K.d, 2);
-      ci(px, py, 11, K.a, 1, 3);
-      for (const h of ch) { const [hx, hy] = pos(h); pg(poly(hx, hy, 13, 3, -PI / 2 + performance.now() / 300), K.c, 1, 1) }
+      if (safe <= 0 || (safe * 8 | 0) % 2) ci(px, py, 11, K.a, 1, 3);
+      for (let i = 0; i < lives; i++) ci(W - 14 - i * 16, 40, 5, K.a, 1);
+      if (ready > 0) tx('GET READY', W / 2, Y0 + R * Z / 2, 26, '#fff');
+      for (const h of ch) { const [hx, hy] = pos(h); pg(poly(hx, hy, 14, 3, -PI / 2 + performance.now() / 300), K.c, 1, ready > 0 ? .4 : 2) }
       g.hud = `LEVEL ${lvl + 1} · ${g.score}`;
     };
   }
@@ -190,8 +195,8 @@ E.golf = {
 E.jumper = {
   t: 'Jumper', c: 'arcade', vs: 0, n: 1, v: [['NEON JUMPER', {}], ['JUMPER MOVING', { n: 2 }], ['JUMPER TINY', { mods: ['tiny'], pal: 'TOXIC' }], ['JUMPER RAINBOW', { mods: ['rainbow'] }], ['JUMPER MIRROR', { mods: ['mirror'], pal: 'SUNSET' }]],
   f(g) {
-    const K = g.K, pw = 60 * g.sz; let p = { x: W / 2, y: 500, vy: -600 }, pl = [], top = 600, h = 0;
-    const add = y => pl.push({ x: rnd(0, W - pw), y, v: g.n > 1 && rnd() < .35 ? rnd(40, 90) * (rnd() < .5 ? 1 : -1) : 0, br: rnd() < Math.min(.3, h / 20000) });
+    const K = g.K, pw = 60 * g.sz; let p = { x: W / 2, y: 500, vy: -600 }, pl = [], top = 600, h = 0, stars = [], bonus = 0;
+    const add = y => { if (rnd() < .3) stars.push({ x: rnd(20, W - 20), y: y - rnd(30, 60) }); pl.push({ x: rnd(0, W - pw), y, v: g.n > 1 && rnd() < .35 ? rnd(40, 90) * (rnd() < .5 ? 1 : -1) : 0, br: rnd() < Math.min(.3, h / 20000), spring: rnd() < .1 }) };
     for (let y = 600; y > -40; y -= 70) add(y); pl[0].x = W / 2 - pw / 2;
     return dt => {
       const I = P[0];
@@ -199,13 +204,16 @@ E.jumper = {
       p.vy += 1150 * g.sp * dt; p.y += p.vy * dt;
       for (const q of pl) {
         q.x += q.v * dt; if (q.x < 0 || q.x > W - pw) q.v = -q.v;
-        if (p.vy > 0 && p.x > q.x - 6 && p.x < q.x + pw + 6 && p.y > q.y - 4 && p.y - p.vy * dt <= q.y + 2) { if (q.br) { q.dead = 1; boom(q.x + pw / 2, q.y, K.c, 12) } p.vy = -620 * Math.sqrt(g.sp); sfx(500, .06, 'triangle') }
+        if (p.vy > 0 && p.x > q.x - 6 && p.x < q.x + pw + 6 && p.y > q.y - 4 && p.y - p.vy * dt <= q.y + 2) { if (q.br) { q.dead = 1; boom(q.x + pw / 2, q.y, K.c, 12) } const sp_ = q.spring && !q.br && abs(p.x - (q.x + pw / 2)) < 16; p.vy = (sp_ ? -1080 : -620) * Math.sqrt(g.sp); sfx(sp_ ? 900 : 500, sp_ ? .2 : .06, 'triangle'); if (sp_) boom(p.x, q.y, K.d, 16) }
       }
-      if (p.y < 260) { const d = 260 - p.y; p.y = 260; h += d; for (const q of pl) q.y += d; top += d }
+      if (p.y < 260) { const d = 260 - p.y; p.y = 260; h += d; for (const q of pl) q.y += d; for (const s of stars) s.y += d; top += d }
+      for (const s of stars) if (!s.got && hyp(s.x - p.x, s.y - p.y + 12) < 22) { s.got = 1; bonus += 25; sfx(1300, .08, 'triangle'); boom(s.x, s.y, K.d, 10) }
+      stars = stars.filter(s => !s.got && s.y < H + 20);
       pl = pl.filter(q => !q.dead && q.y < H + 20); while (pl.length < 12 || Math.min(...pl.map(q => q.y)) > 0) add(Math.min(...pl.map(q => q.y)) - rnd(55, 95));
       if (p.y > H + 30) lose(g);
-      g.score = h / 10 | 0;
-      for (const q of pl) rc(q.x, q.y, pw, 8, q.br ? K.c : q.v ? K.b : K.d, 1);
+      g.score = (h / 10 | 0) + bonus;
+      for (const q of pl) { rc(q.x, q.y, pw, 8, q.br ? K.c : q.v ? K.b : K.d, 1); if (q.spring && !q.br) pg([q.x + pw / 2 - 8, q.y, q.x + pw / 2 - 4, q.y - 8, q.x + pw / 2, q.y, q.x + pw / 2 + 4, q.y - 8, q.x + pw / 2 + 8, q.y], '#fff', 0, 0, 2) }
+      for (const s of stars) pg(poly(s.x, s.y, 9, 5, -PI / 2, 4), K.d, 1, 2);
       ci(p.x, p.y - 12, 12, K.a, 1, 3); ci(p.x - 4, p.y - 15, 2, '#fff', 2); ci(p.x + 4, p.y - 15, 2, '#fff', 2);
       tx(g.score, W / 2, 60, 36, K.e);
     };
