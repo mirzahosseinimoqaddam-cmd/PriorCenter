@@ -79,6 +79,22 @@ jobs:
           ls -l "$GITHUB_WORKSPACE/out"
           test -f "$GITHUB_WORKSPACE/out/Purity-universal.apk"
 
+      - name: Drop unsigned universal APK on the purity-build-drop branch (non-main builds)
+        if: github.ref != 'refs/heads/main'
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          DROP="$RUNNER_TEMP/drop"
+          mkdir -p "$DROP"
+          cp purity/app/build/outputs/apk/release/*universal*-unsigned.apk "$DROP/Purity-universal-unsigned.apk"
+          cd "$DROP"
+          git init -q -b purity-build-drop
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Purity-universal-unsigned.apk
+          git commit -q -m "Unsigned Purity build from $GITHUB_SHA"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" purity-build-drop
+
       - uses: actions/upload-artifact@v4
         with:
           name: Purity-apks
