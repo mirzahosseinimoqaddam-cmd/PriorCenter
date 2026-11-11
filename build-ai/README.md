@@ -1,0 +1,68 @@
+# Build AI
+
+An AI that makes pixel art from a short text, running **on your phone** (CPU and RAM only, no internet).
+Version 1 makes **16×16** art. 32×32, 64×64 and more than pixel art come later.
+
+## How it works
+
+- Every picture is a grid of colour numbers from one shared palette (plus "transparent").
+- A small transformer reads your words, then **draws the picture pixel by pixel**, row by row, like writing a sentence.
+  Each pixel is an exact palette colour, so the result is always real, sharp pixel art. Nothing gets blurred and nothing needs cleanup.
+- "Follow prompt" uses classifier-free guidance: the model draws with and without your words and pushes towards the difference.
+- The model file (`model.bin`) is compressed to 8-bit: about **6 MB** for the full 16×16 model (6M parameters).
+- On the phone, `web/engine.js` runs it in plain JavaScript on up to 4 CPU cores. It gives the same numbers as PyTorch,
+  which `trainer/test_parity.py` checks.
+
+```
+build-ai/
+  trainer/   prepare.py (images -> palette tokens), caption.py, model.py, train.py, export.py,
+             test_parity.py, make_demo_data.py, train_16x16.ipynb (Kaggle / Colab)
+  web/       index.html (the app screen), engine.js (the phone engine)
+  android/   the APK shell (WebView, no internet permission), build.sh
+  models/    model files bundled into the APK
+```
+
+## Status
+
+| Step | State |
+|---|---|
+| Data prep: undo upscaling, dedupe, palette, captions | done, tested on synthetic sprites |
+| Model + training (GPU or CPU, resumes) | done, tested |
+| Phone engine (matches PyTorch to 1e-5) | done, tested |
+| App: English/فارسی, 1–4 pictures, creativity, follow-prompt, symmetric, Game Boy / PICO-8 / NES palettes, save PNG and 512px, history, import model | done, tested in a browser |
+| APK | built by GitHub Actions → release `buildai-latest` |
+| **Real 16×16 model on the 1.4M-image set** | **next: run `trainer/train_16x16.ipynb` on Kaggle or Colab** |
+
+Until the real model is trained, the APK carries `models/demo-shapes16.bin`. This is a 0.9M test model trained for 12 minutes
+on a CPU, and it only knows shapes and colours ("big red heart", "small blue circle").
+
+## Train the real model
+
+1. Open `trainer/train_16x16.ipynb` on Kaggle (GPU T4, Internet on) or Colab (GPU) and run all cells.
+   The first cell checks the dataset (columns, captions, how many images are true 16×16).
+2. Download `pixel16.bin` at the end.
+3. Either import it in the app (**Import model file**), or commit it as `build-ai/models/pixel16.bin`.
+   The next APK build then carries it.
+
+Local CPU test of the whole pipeline (about 15 minutes):
+
+```
+pip install -r trainer/requirements.txt
+cd trainer
+python make_demo_data.py demo_png 6000
+python prepare.py --out demo16 --folder demo_png
+python train.py --data demo16 --out demo --steps 1500 --batch 64 --dim 128 --layers 4 --heads 4 --lr 1e-3
+python export.py --ckpt demo/ckpt.pt --out demo.bin --name "Demo"
+python test_parity.py demo.bin
+```
+
+## Data and licences
+
+`prepare.py` takes any number of sources: `--hf <dataset>` (repeatable) and `--folder <dir>` (captions from a `.txt` next to each image, or the file name).
+Before adding a source, check its licence. Prefer CC0 / CC-BY sets (for example OpenGameArt packs), and leave out sprites ripped from commercial games.
+
+## Next
+
+- 32×32 and 64×64: the same model with `--size 32/64`. For 64×64 (4,096 pixels) it will draw in small patches instead of single pixels, to stay fast on a phone.
+- Edit an existing sprite, fill in a half-drawn one, animation frames, tilesets.
+- Beyond pixel art: the same on-device engine design, with bigger vocabularies and other kinds of output.

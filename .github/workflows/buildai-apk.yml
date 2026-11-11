@@ -1,0 +1,49 @@
+name: Build AI app
+
+on:
+  push:
+    paths:
+      - 'build-ai/web/**'
+      - 'build-ai/android/**'
+      - 'build-ai/models/**'
+      - '.github/workflows/buildai-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check the phone engine against the bundled model
+        run: |
+          node -e "
+          const E=require('./build-ai/web/engine.js'),fs=require('fs');
+          const f=fs.existsSync('build-ai/models/pixel16.bin')?'build-ai/models/pixel16.bin':'build-ai/models/demo-shapes16.bin';
+          const b=fs.readFileSync(f);const m=E.loadModel(b.buffer.slice(b.byteOffset,b.byteOffset+b.length));
+          const r=E.generate(m,'big red heart',{count:2,seed:1});
+          if(r.images.length!==2||r.images[0].length!==m.cfg.size*m.cfg.size)throw new Error('bad output');
+          console.log(f,'ok');"
+      - name: Build APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 0.1.${{ github.run_number }}
+        run: bash build-ai/android/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: build-ai/android/BuildAI.apk
+      - name: Publish as the latest test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete buildai-latest --yes --cleanup-tag || true
+          gh release create buildai-latest build-ai/android/BuildAI.apk \
+            --target "${{ github.sha }}" --prerelease --title "Build AI (test build ${{ github.run_number }})" \
+            --notes "Build AI: offline pixel-art maker for Android. Runs fully on your phone. This build carries the model in build-ai/models (the shapes-only demo until the real 16x16 model is trained)."

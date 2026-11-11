@@ -1,0 +1,6 @@
+torch>=2.1
+numpy
+pillow
+scikit-learn
+datasets        # for --hf sources
+transformers    # only for caption.py

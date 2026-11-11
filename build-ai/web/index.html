@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build AI</title>
+<style>
+  :root {
+    --bg: #0d0f17; --panel: #161a26; --panel2: #1e2333; --line: #2b3247; --text: #e9ecf5; --dim: #8d95ab;
+    --accent: #ffcc33; --accent2: #ff6b5a; --ok: #4ade80; --checker1: #2a2f40; --checker2: #23283a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { padding: 14px 16px 40px; max-width: 640px; margin: 0 auto; }
+  [dir=rtl] body { font-family: Tahoma, system-ui, sans-serif; }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .logo { width: 34px; height: 34px; image-rendering: pixelated; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: .5px; flex: 1; }
+  h1 small { color: var(--dim); font-weight: 400; font-size: 12px; margin-inline-start: 6px; }
+  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; cursor: pointer; }
+  button:active { transform: translateY(1px); }
+  button.primary { background: var(--accent); color: #1a1400; border-color: var(--accent); font-weight: 700; }
+  button:disabled { opacity: .45; }
+  .chip { padding: 5px 10px; border-radius: 999px; font-size: 13px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
+  .status { font-size: 13px; color: var(--dim); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .status b { color: var(--text); font-weight: 600; }
+  .warn { background: #3a2a10; border-color: #6b4a12; color: #ffd98a; font-size: 13px; }
+  textarea { width: 100%; min-height: 64px; resize: vertical; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row.spread { justify-content: space-between; }
+  label.slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 13px; color: var(--dim); flex: 1; min-width: 140px; }
+  label.slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+  .ideas { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 10px; }
+  .ideas button { font-size: 12px; padding: 4px 9px; border-radius: 999px; color: var(--dim); }
+  .bar { height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .cell { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 2px solid var(--line);
+    background: repeating-conic-gradient(var(--checker1) 0 25%, var(--checker2) 0 50%) 0 0 / 25% 25%; cursor: pointer; }
+  .cell.sel { border-color: var(--accent); }
+  canvas.px { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+  .detail canvas.px { border-radius: 12px; border: 1px solid var(--line);
+    background: repeating-conic-gradient(var(--checker1) 0 25%, var(--checker2) 0 50%) 0 0 / 12.5% 12.5%; }
+  select { font: inherit; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+  .hist { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .hist .cell { border-width: 1px; border-radius: 8px; }
+  h2 { font-size: 14px; color: var(--dim); font-weight: 600; margin: 4px 0 8px; text-transform: uppercase; letter-spacing: .6px; }
+  .muted { color: var(--dim); font-size: 13px; }
+  .hidden { display: none !important; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--panel2); border: 1px solid var(--line); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 9; }
+</style>
+</head>
+<body>
+<header>
+  <canvas class="logo" id="logo" width="16" height="16"></canvas>
+  <h1>Build AI <small data-t="tag">pixel art · offline</small></h1>
+  <button class="chip" id="lang">فارسی</button>
+</header>
+
+<div class="panel">
+  <div class="status" id="status"><span data-t="loading">Loading model…</span></div>
+  <div class="row" style="margin-top:8px"><button class="chip" id="import" data-t="import">Import model file</button></div>
+</div>
+<div class="panel warn hidden" id="demoWarn" data-t="demo">This is a test model. It only knows simple shapes and colours (try “big red heart”). Train the real model with the notebook, then import it here.</div>
+
+<div class="panel">
+  <textarea id="prompt" maxlength="200" data-tp="placeholder" placeholder="Describe your pixel art, e.g. red potion bottle"></textarea>
+  <div class="ideas" id="ideas"></div>
+  <div class="row">
+    <label class="slider"><span data-t="creative">Creativity</span><output id="tv">1.0</output><input id="temp" type="range" min="0.5" max="1.5" step="0.1" value="1.0"></label>
+    <label class="slider"><span data-t="follow">Follow prompt</span><output id="gv">3</output><input id="guide" type="range" min="1" max="6" step="0.5" value="3"></label>
+  </div>
+  <div class="row spread" style="margin-top:10px">
+    <label class="muted"><input type="checkbox" id="mirror"> <span data-t="mirror">Symmetric</span></label>
+    <div class="row">
+      <select id="count"><option>1</option><option>2</option><option selected>4</option></select>
+      <button class="primary" id="go" data-t="make" disabled>Make it</button>
+    </div>
+  </div>
+  <div class="bar hidden" id="bar"><i></i></div>
+  <div class="muted" id="info" style="margin-top:6px"></div>
+</div>
+
+<div class="panel hidden" id="results">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="panel detail hidden" id="detail">
+  <canvas class="px" id="big" width="16" height="16"></canvas>
+  <div class="row" style="margin-top:10px">
+    <select id="pal">
+      <option value="orig" data-t="palOrig">Original colours</option>
+      <option value="gb">Game Boy</option>
+      <option value="pico">PICO-8</option>
+      <option value="nes">NES</option>
+      <option value="gray" data-t="palGray">Grayscale</option>
+    </select>
+    <button id="save1" data-t="saveSmall">Save PNG</button>
+    <button id="save32" data-t="saveBig">Save big (512px)</button>
+    <button id="again" data-t="again">More like this</button>
+  </div>
+</div>
+
+<div class="panel hidden" id="historyPanel">
+  <h2 data-t="history">Recent</h2>
+  <div class="hist" id="history"></div>
+</div>
+
+<script src="engine.js"></script>
+<script>
+'use strict';
+var T = {
+  en: { tag: 'pixel art · offline', loading: 'Loading model…', import: 'Import model file', make: 'Make it', creative: 'Creativity', follow: 'Follow prompt',
+    mirror: 'Symmetric', palOrig: 'Original colours', palGray: 'Grayscale', saveSmall: 'Save PNG', saveBig: 'Save big (512px)', again: 'More like this',
+    history: 'Recent', placeholder: 'Describe your pixel art, e.g. red potion bottle', noModel: 'No model yet. Import a model.bin file.',
+    model: 'Model', words: 'words', working: 'Drawing…', took: 'Made in', unknown: 'Words it does not know yet (ignored):', saved: 'Saved to Pictures/BuildAI',
+    demo: 'This is a test model. It only knows simple shapes and colours (try “big red heart”). Train the real model with the notebook, then import it here.',
+    badFile: 'That file is not a Build AI model.', empty: 'Type what you want first.', imported: 'Model imported', lang: 'فارسی' },
+  fa: { tag: 'پیکسل آرت · آفلاین', loading: 'در حال بارگذاری مدل…', import: 'وارد کردن فایل مدل', make: 'بساز', creative: 'خلاقیت', follow: 'پیروی از متن',
+    mirror: 'قرینه', palOrig: 'رنگ‌های اصلی', palGray: 'سیاه‌وسفید', saveSmall: 'ذخیره PNG', saveBig: 'ذخیره بزرگ (۵۱۲)', again: 'مشابه این',
+    history: 'اخیر', placeholder: 'پیکسل آرتت را به انگلیسی توصیف کن، مثلا red potion bottle', noModel: 'هنوز مدلی نیست. فایل model.bin را وارد کن.',
+    model: 'مدل', words: 'کلمه', working: 'در حال کشیدن…', took: 'ساخته شد در', unknown: 'کلمه‌هایی که هنوز بلد نیست (نادیده گرفته شد):', saved: 'در Pictures/BuildAI ذخیره شد',
+    demo: 'این یک مدل آزمایشی است و فقط شکل‌ها و رنگ‌های ساده را می‌شناسد (مثلا big red heart). مدل اصلی را با نوت‌بوک آموزش بده و اینجا واردش کن.',
+    badFile: 'این فایل مدل Build AI نیست.', empty: 'اول بنویس چه می‌خواهی.', imported: 'مدل وارد شد', lang: 'English' }
+};
+var PALS = {
+  gb: [[15,56,15],[48,98,48],[139,172,15],[155,188,15]],
+  pico: [[0,0,0],[29,43,83],[126,37,83],[0,135,81],[171,82,54],[95,87,79],[194,195,199],[255,241,232],[255,0,77],[255,163,0],[255,236,39],[0,228,54],[41,173,255],[131,118,156],[255,119,168],[255,204,170]],
+  nes: [[0,0,0],[124,124,124],[188,188,188],[248,248,248],[168,16,0],[248,56,0],[248,120,88],[0,120,0],[0,184,0],[184,248,24],[0,88,248],[104,136,252],[60,188,252],[104,68,252],[216,0,204],[248,184,0],[172,124,0],[0,64,88],[248,216,120],[248,164,192]]
+};
+var IDEAS = ['red potion', 'green slime', 'iron sword', 'golden coin', 'pink heart', 'skull', 'treasure chest', 'pine tree', 'blue gem', 'cat'];
+var DEMO_IDEAS = ['big red heart', 'small blue circle', 'big yellow cross', 'big green triangle', 'small purple square', 'big orange diamond'];
+
+var $ = function (id) { return document.getElementById(id); };
+var lang = 'en', info = null, worker = null, results = [], selected = -1, lastPrompt = '', reqId = 0;
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem('buildai.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem('buildai.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+var native = window.BuildNative || null;
+
+function t(k) { return T[lang][k] || T.en[k] || k; }
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-t]').forEach(function (el) { el.textContent = t(el.dataset.t); });
+  $('prompt').placeholder = t('placeholder');
+  $('lang').textContent = t('lang');
+  showStatus();
+}
+function toast(msg) {
+  var d = document.createElement('div'); d.className = 'toast'; d.textContent = msg; document.body.appendChild(d);
+  setTimeout(function () { d.remove(); }, 2600);
+}
+
+// ---------- drawing ----------
+function nearest(rgb, pal) {
+  var best = 0, bd = 1e9;
+  for (var i = 0; i < pal.length; i++) {
+    var dr = rgb[0] - pal[i][0], dg = rgb[1] - pal[i][1], db = rgb[2] - pal[i][2];
+    var d = 2 * dr * dr + 4 * dg * dg + 3 * db * db;
+    if (d < bd) { bd = d; best = i; }
+  }
+  return pal[best];
+}
+function colourOf(id, mode) {
+  var c = info.palette[id] || [0, 0, 0];
+  if (mode === 'gray') { var y = Math.round(0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]); return [y, y, y]; }
+  if (PALS[mode]) return nearest(c, PALS[mode]);
+  return c;
+}
+function draw(canvas, img, mode, scale) {
+  var s = info.size; scale = scale || 1;
+  canvas.width = s * scale; canvas.height = s * scale;
+  var ctx = canvas.getContext('2d'), data = ctx.createImageData(s * scale, s * scale);
+  for (var y = 0; y < s * scale; y++) for (var x = 0; x < s * scale; x++) {
+    var id = img[((y / scale) | 0) * s + ((x / scale) | 0)], o = (y * s * scale + x) * 4;
+    if (id === info.transparent) { data.data[o + 3] = 0; continue; }
+    var c = colourOf(id, mode);
+    data.data[o] = c[0]; data.data[o + 1] = c[1]; data.data[o + 2] = c[2]; data.data[o + 3] = 255;
+  }
+  ctx.putImageData(data, 0, 0);
+}
+function drawLogo() {
+  var art = ['................', '......3333......', '....33111133....', '...3111111113...', '..311222222113..', '..312211112213..',
+    '.31221222212213.', '.31212222221213.', '.31212222221213.', '.31221222212213.', '..312211112213..', '..311222222113..',
+    '...3111111113...', '....33111133....', '......3333......', '................'];
+  var cols = { 1: '#ffcc33', 2: '#ff6b5a', 3: '#2b1a00' }, ctx = $('logo').getContext('2d');
+  art.forEach(function (row, y) { row.split('').forEach(function (ch, x) { if (cols[ch]) { ctx.fillStyle = cols[ch]; ctx.fillRect(x, y, 1, 1); } }); });
+}
+
+// ---------- model ----------
+function showStatus(err) {
+  var st = $('status');
+  if (err) { st.innerHTML = ''; st.textContent = err; return; }
+  if (!info) { st.textContent = worker ? t('loading') : t('noModel'); return; }
+  st.innerHTML = '';
+  var b = document.createElement('b'); b.textContent = info.name; st.append(t('model') + ': ', b,
+    ' · ' + info.size + '×' + info.size + ' · ' + (info.params / 1e6).toFixed(1) + 'M · ' + info.words + ' ' + t('words'));
+}
+// One worker per core (up to 4): each draws some of the pictures at the same time.
+var pool = [], pending = null;
+function poolSize() { return Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1)); }
+function startWorker(buffer) {
+  pool.forEach(function (w) { w.terminate(); });
+  pool = []; info = null; worker = true;
+  var blob = new Blob([window.__engineSrc + '\nBuildAIEngine.serveWorker(self);'], { type: 'text/javascript' });
+  var url = URL.createObjectURL(blob), n = poolSize();
+  for (var i = 0; i < n; i++) {
+    var w = new Worker(url);
+    w.onmessage = onWorker;
+    var copy = i === n - 1 ? buffer : buffer.slice(0);
+    w.postMessage({ type: 'load', buffer: copy }, [copy]);
+    pool.push(w);
+  }
+  showStatus();
+}
+function onWorker(ev) {
+  var d = ev.data;
+  if (d.type === 'loaded') {
+    if (info) return; // the other workers loaded the same model
+    info = d; showStatus();
+    var demo = /demo/i.test(d.name);
+    $('demoWarn').classList.toggle('hidden', !demo);
+    renderIdeas(demo ? DEMO_IDEAS : IDEAS);
+    $('go').disabled = false;
+    drawHistory();
+  } else if (!pending || d.id !== pending.id) {
+    if (d.type === 'error' && !info) { pool.forEach(function (w) { w.terminate(); }); pool = []; worker = null; showStatus(t('badFile')); }
+  } else if (d.type === 'progress') {
+    pending.done[d.part] = d.done * pending.counts[d.part];
+    var sum = pending.done.reduce(function (a, b) { return a + b; }, 0);
+    $('bar').firstChild.style.width = (100 * sum / (d.total * pending.total)) + '%';
+  } else if (d.type === 'done') {
+    pending.out[d.part] = d; pending.left--;
+    if (pending.left) return;
+    var all = [], ms = 0, unknown = [];
+    pending.out.forEach(function (r) { all = all.concat(r.images.map(function (a) { return Array.from(a); })); ms = Math.max(ms, r.ms); unknown = r.unknown; });
+    pending = null;
+    $('bar').classList.add('hidden'); $('go').disabled = false;
+    results = all;
+    var msg = t('took') + ' ' + (ms / 1000).toFixed(1) + 's';
+    if (unknown.length) msg += ' · ' + t('unknown') + ' ' + unknown.join(', ');
+    $('info').textContent = msg;
+    showResults();
+    addHistory(lastPrompt, results);
+  } else if (d.type === 'error') {
+    pending = null; $('bar').classList.add('hidden'); $('go').disabled = false; toast(d.message);
+  }
+}
+function fetchBuf(url) {
+  return fetch(url).then(function (r) { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); });
+}
+function loadModel() {
+  fetch('engine.js').then(function (r) { return r.text(); }).then(function (src) {
+    window.__engineSrc = src;
+    return fetchBuf('model.bin');
+  }).then(startWorker).catch(function () { worker = null; info = null; showStatus(); });
+}
+
+// ---------- making ----------
+function make(seed) {
+  var p = $('prompt').value.trim();
+  if (!p) { toast(t('empty')); return; }
+  lastPrompt = p; store.set('prompt', p);
+  reqId++;
+  $('go').disabled = true; $('bar').classList.remove('hidden'); $('bar').firstChild.style.width = '0';
+  $('info').textContent = t('working');
+  var total = +$('count').value, n = Math.min(pool.length, total), base = seed === undefined ? (Math.random() * 1e9) | 0 : seed;
+  pending = { id: reqId, total: total, left: n, out: [], done: [], counts: [] };
+  for (var i = 0; i < n; i++) {
+    var c = Math.floor(total / n) + (i < total % n ? 1 : 0);
+    pending.counts[i] = c; pending.done[i] = 0;
+    pool[i].postMessage({ type: 'generate', id: reqId, part: i, prompt: p, opts: {
+      count: c, temperature: +$('temp').value, guidance: +$('guide').value, mirror: $('mirror').checked, seed: base + i * 7919 } });
+  }
+}
+function showResults() {
+  var g = $('grid'); g.innerHTML = '';
+  g.style.gridTemplateColumns = results.length === 1 ? '1fr' : 'repeat(2, 1fr)';
+  results.forEach(function (img, i) {
+    var cell = document.createElement('div'); cell.className = 'cell';
+    var c = document.createElement('canvas'); c.className = 'px'; draw(c, img, $('pal').value);
+    cell.appendChild(c); cell.onclick = function () { pick(i); }; g.appendChild(cell);
+  });
+  $('results').classList.remove('hidden');
+  pick(0);
+}
+function pick(i) {
+  selected = i;
+  Array.prototype.forEach.call($('grid').children, function (c, j) { c.classList.toggle('sel', j === i); });
+  draw($('big'), results[i], $('pal').value);
+  $('detail').classList.remove('hidden');
+}
+function savePng(scale) {
+  var c = document.createElement('canvas'); draw(c, results[selected], $('pal').value, scale);
+  var name = 'buildai-' + (lastPrompt || 'art').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30) + '-' + Date.now() + '.png';
+  var url = c.toDataURL('image/png');
+  if (native) {
+    var r = native.savePng(url.split(',')[1], name);
+    toast(r === 'ok' ? t('saved') : r);
+  } else {
+    var a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  }
+}
+
+// ---------- history ----------
+function addHistory(prompt, imgs) {
+  var h = store.get('history', []);
+  imgs.forEach(function (im) { h.unshift({ p: prompt, i: im, m: info.name }); });
+  store.set('history', h.slice(0, 36));
+  drawHistory();
+}
+function drawHistory() {
+  var h = store.get('history', []).filter(function (e) { return e.m === info.name; });
+  $('historyPanel').classList.toggle('hidden', !h.length);
+  var box = $('history'); box.innerHTML = '';
+  h.forEach(function (e) {
+    var cell = document.createElement('div'); cell.className = 'cell'; cell.title = e.p;
+    var c = document.createElement('canvas'); c.className = 'px'; draw(c, e.i, 'orig'); cell.appendChild(c);
+    cell.onclick = function () { lastPrompt = e.p; $('prompt').value = e.p; results = [e.i]; showResults(); window.scrollTo(0, 0); };
+    box.appendChild(cell);
+  });
+}
+function renderIdeas(list) {
+  var box = $('ideas'); box.innerHTML = '';
+  list.forEach(function (w) {
+    var b = document.createElement('button'); b.textContent = w;
+    b.onclick = function () { $('prompt').value = w; };
+    box.appendChild(b);
+  });
+}
+
+// ---------- wiring ----------
+$('go').onclick = function () { make(); };
+$('again').onclick = function () { $('prompt').value = lastPrompt; make(); };
+$('save1').onclick = function () { savePng(1); };
+$('save32').onclick = function () { savePng(Math.round(512 / info.size)); };
+$('pal').onchange = function () { if (results.length) { showResults(); } };
+$('temp').oninput = function () { $('tv').textContent = (+this.value).toFixed(1); };
+$('guide').oninput = function () { $('gv').textContent = this.value; };
+$('lang').onclick = function () { lang = lang === 'en' ? 'fa' : 'en'; store.set('lang', lang); applyLang(); };
+$('prompt').onkeydown = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!$('go').disabled) make(); } };
+$('import').onclick = function () {
+  if (native) { native.pickModel(); return; }
+  var inp = document.createElement('input'); inp.type = 'file';
+  inp.onchange = function () { inp.files[0].arrayBuffer().then(function (b) { info = null; startWorker(b); }); };
+  inp.click();
+};
+// called by the Android side after the user picked a model file
+window.onModelImported = function (ok) {
+  if (ok) { toast(t('imported')); info = null; results = []; $('results').classList.add('hidden'); $('detail').classList.add('hidden'); loadModel(); }
+  else showStatus(t('badFile'));
+};
+
+lang = store.get('lang', 'en');
+$('prompt').value = store.get('prompt', '');
+drawLogo(); applyLang(); loadModel();
+</script>
+</body>
+</html>
