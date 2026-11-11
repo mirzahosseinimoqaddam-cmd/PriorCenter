@@ -60,7 +60,10 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        web.evaluateJavascript("window.neonBack && window.neonBack()", r -> { if (!"true".equals(r)) finish(); });
+        web.evaluateJavascript("window.neonBack && window.neonBack()", new android.webkit.ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String r) { if (!"true".equals(r)) finish(); }
+        });
     }
 
     @Override
