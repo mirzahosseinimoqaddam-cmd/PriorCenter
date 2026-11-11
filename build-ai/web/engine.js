@@ -35,24 +35,42 @@ var BuildAIEngine = (function () {
     return {
       name: header.name, cfg: c, vocab: header.vocab, index: index, palette: header.palette, w: w,
       transparent: c.palette, bos: c.palette + 1, nOut: c.palette + 1,
-      seqLen: c.text_len + c.size * c.size, step: header.step || 0
+      seqLen: c.text_len + c.size * c.size, step: header.step || 0, aliases: header.aliases || {}
     };
   }
 
+  // word -> id: exact, plural, or through the alias map (synonyms and Persian words, from make_aliases.py)
+  function wordId(m, w) {
+    var forms = [w];
+    if (/ies$/.test(w)) forms.push(w.slice(0, -3) + 'y');
+    if (/es$/.test(w)) forms.push(w.slice(0, -2));
+    if (/s$/.test(w)) forms.push(w.slice(0, -1));
+    var i, a;
+    for (i = 0; i < forms.length; i++) if (m.index[forms[i]] !== undefined) return m.index[forms[i]]; // real words first
+    for (i = 0; i < forms.length; i++) { a = m.aliases[forms[i]]; if (a && m.index[a] !== undefined) return m.index[a]; }
+    return undefined;
+  }
+
   function tokenize(m, prompt) {
-    var words = String(prompt).toLowerCase().match(/[a-z0-9]+/g) || [];
+    var mapped = [];
+    var parts = String(prompt).toLowerCase().replace(/\u200c/g, '\u200c').split(/[\s,.!?،؛]+/), words = [];
+    parts.forEach(function (p) {
+      if (!p) return;
+      if (/[a-z0-9]/.test(p)) { words = words.concat(p.match(/[a-z0-9]+/g)); return; }
+      var bare = p.replace(/\u200c?(های|ها|ی)$/, '').replace(/\u200c/g, ''); // plural / -i ending, half-space
+      var en = m.aliases[p] || m.aliases[p.replace(/\u200c/g, '')] || m.aliases[bare];
+      if (en) mapped.push(p + ' → ' + en);
+      words = words.concat(en ? en.split(' ') : ['\u0000' + p]); // keep unknown Persian words for the message
+    });
     var ids = [], unknown = [];
     for (var i = 0; i < words.length && ids.length < m.cfg.text_len; i++) {
-      var w = words[i], id = m.index[w];
-      // plurals: apples -> apple, boxes -> box, berries -> berry
-      if (id === undefined && /s$/.test(w)) id = m.index[w.slice(0, -1)];
-      if (id === undefined && /es$/.test(w)) id = m.index[w.slice(0, -2)];
-      if (id === undefined && /ies$/.test(w)) id = m.index[w.slice(0, -3) + 'y'];
-      if (id === undefined) { id = 1; unknown.push(w); }
+      var w = words[i], id = w.charAt(0) === '\u0000' ? undefined : wordId(m, w);
+      if (id === undefined) { id = 1; unknown.push(w.replace('\u0000', '')); }
+      else if (m.vocab[id] !== w && !m.vocab[id].startsWith(w.replace(/s$/, ''))) mapped.push(w + ' → ' + m.vocab[id]);
       ids.push(id);
     }
     while (ids.length < m.cfg.text_len) ids.push(0);
-    return { ids: ids, unknown: unknown };
+    return { ids: ids, unknown: unknown, mapped: mapped };
   }
 
   function layerNorm(x, g, b, y, d) {
@@ -223,7 +241,7 @@ var BuildAIEngine = (function () {
       if (p < N - 1) lg = stepBatch(m, seqs, toks, false, scratch);
       if (onProgress && (p + 1) % c.size === 0) onProgress(p + 1, N);
     }
-    return { images: images, unknown: tok.unknown };
+    return { images: images, unknown: tok.unknown, mapped: tok.mapped };
   }
 
   // Logits for a given prompt + pixels at every pixel position (used by tests only).
@@ -252,7 +270,7 @@ var BuildAIEngine = (function () {
           var r = generate(model, d.prompt, d.opts, function (done, total) {
             self.postMessage({ type: 'progress', id: d.id, part: d.part, done: done, total: total });
           });
-          self.postMessage({ type: 'done', id: d.id, part: d.part, images: r.images, unknown: r.unknown, ms: Date.now() - t0 });
+          self.postMessage({ type: 'done', id: d.id, part: d.part, images: r.images, unknown: r.unknown, mapped: r.mapped, ms: Date.now() - t0 });
         }
       } catch (e) {
         self.postMessage({ type: 'error', id: d.id, part: d.part, message: String(e && e.message || e) });

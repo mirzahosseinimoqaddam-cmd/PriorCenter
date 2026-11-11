@@ -155,10 +155,13 @@ def emoji_name(stem):
     """Twemoji-style file name '1f34e' or '1f468-200d-1f373' -> 'red apple' / 'man cook'."""
     import unicodedata
 
-    parts = []
+    parts, who = [], ""
     for cp in stem.split("-"):
         c = chr(int(cp, 16))
         if cp in ("200d", "fe0f", "20e3"):
+            continue
+        if cp in ("2640", "2642"):  # gender signs in ZWJ sequences: person running + female sign -> woman running
+            who = "woman" if cp == "2640" else "man"
             continue
         if 0x1F1E6 <= ord(c) <= 0x1F1FF:
             return "flag"
@@ -166,7 +169,11 @@ def emoji_name(stem):
         if 0x1F3FB <= ord(c) <= 0x1F3FF:
             continue  # skin tone modifiers
         parts.append(n.lower())
-    return " ".join(parts)
+    text = " ".join(parts)
+    if who:
+        text = re.sub(r"^(person|people) ", "", text)
+        text = f"{who} {text}"
+    return text
 
 
 def caption_from_path(root, path):

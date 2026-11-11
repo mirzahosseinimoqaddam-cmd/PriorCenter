@@ -1,0 +1,388 @@
+# One concept per line. synth.py draws each one several times with a ready pixel-art AI.
+# food
+apple
+green apple
+banana
+orange fruit
+lemon
+grapes
+watermelon slice
+strawberry
+cherry
+peach
+pear
+pineapple
+coconut
+carrot
+tomato
+potato
+mushroom
+corn
+eggplant
+chili pepper
+onion
+broccoli
+bread loaf
+cheese wedge
+fried egg
+cake slice
+cupcake
+cookie
+donut
+ice cream cone
+candy
+chocolate bar
+pizza slice
+hamburger
+sandwich
+rice bowl
+soup bowl
+milk bottle
+cup of tea
+coffee cup
+honey jar
+roast chicken leg
+fish steak
+dates fruit
+pomegranate
+kebab skewer
+# animals
+cat
+cat face
+dog
+puppy
+horse
+cow
+sheep
+goat
+camel
+rabbit
+mouse
+bird
+dove
+eagle
+owl
+parrot
+penguin
+duck
+chick
+rooster
+lion
+tiger
+leopard
+elephant
+giraffe
+monkey
+bear
+panda
+wolf
+fox
+deer
+squirrel
+turtle
+snake
+frog
+crocodile
+whale
+dolphin
+shark
+octopus
+crab
+fish
+goldfish
+bee
+butterfly
+ladybug
+ant
+spider
+snail
+bat
+hedgehog
+koala
+zebra
+hippo
+# fantasy creatures and characters
+dragon
+baby dragon
+slime monster
+green slime
+ghost
+skeleton warrior
+zombie
+goblin
+orc
+troll
+golem
+robot
+alien
+knight
+warrior with sword
+archer
+wizard
+witch
+king
+queen
+princess
+prince
+pirate
+ninja
+farmer
+chef
+doctor
+astronaut
+miner
+blacksmith
+merchant
+soldier
+hero character
+old man
+old woman
+boy
+girl
+baby
+# weapons and armor
+sword
+short sword
+great sword
+dagger
+axe
+battle axe
+bow
+arrow
+crossbow
+spear
+mace
+hammer
+war hammer
+magic staff
+magic wand
+shield
+round shield
+helmet
+armor chestplate
+boots
+gloves
+gauntlet
+# rpg items
+health potion
+mana potion
+blue potion
+green potion
+red potion
+potion bottle
+scroll
+spell book
+book
+map
+treasure map
+key
+golden key
+lock
+treasure chest
+wooden chest
+gold coin
+coin stack
+money bag
+diamond
+ruby gem
+emerald gem
+sapphire gem
+crystal
+crown
+ring
+amulet
+necklace
+bag
+backpack
+lantern
+torch
+candle
+bomb
+heart
+half heart
+star
+skull
+bone
+feather
+leaf
+flower
+rose
+sunflower
+tulip
+cactus
+tree
+pine tree
+palm tree
+bush
+log
+rock
+stone
+ore
+gold ore
+iron ingot
+wood plank
+rope
+bucket
+barrel
+crate
+pot
+vase
+anvil
+pickaxe
+shovel
+fishing rod
+hoe
+sickle
+watering can
+seeds
+wheat
+apple tree
+mushroom house
+# nature and sky
+sun
+moon
+crescent moon
+star sky
+cloud
+rain cloud
+lightning bolt
+snowflake
+fire
+flame
+water drop
+wave
+mountain
+volcano
+island
+rainbow
+planet
+earth globe
+comet
+# buildings and places
+house
+small house
+castle
+tower
+mosque
+tent
+hut
+lighthouse
+windmill
+bridge
+well
+fountain
+door
+window
+fence
+signpost
+mailbox
+# vehicles
+car
+red car
+bus
+truck
+train
+airplane
+helicopter
+ship
+sailboat
+boat
+bicycle
+motorcycle
+rocket
+spaceship
+submarine
+tractor
+hot air balloon
+# objects and icons
+ball
+football
+basketball
+balloon
+gift box
+kite
+teddy bear
+toy robot
+clock
+hourglass
+alarm clock
+phone
+computer
+laptop
+television
+camera
+light bulb
+lamp
+pencil
+pen
+paintbrush
+envelope
+letter
+flag
+trophy
+medal
+bell
+magnet
+battery
+gear
+wrench
+screwdriver
+scissors
+umbrella
+glasses
+hat
+cap
+shirt
+dress
+shoe
+sock
+chair
+table
+bed
+sofa
+bathtub
+toilet
+mirror
+broom
+soap
+toothbrush
+guitar
+drum
+piano
+violin
+trumpet
+headphones
+music note
+microphone
+dice
+puzzle piece
+chess knight
+target
+compass
+telescope
+microscope
+magnifying glass
+syringe
+pill
+first aid kit
+thermometer
+calendar
+lock icon
+home icon
+save icon
+trash can
+folder
+heart icon
+star icon
+check mark
+cross mark
+plus sign
+arrow up
+arrow right
+question mark
+exclamation mark
+speech bubble
+smiley face
+sad face
+angry face
+laughing face

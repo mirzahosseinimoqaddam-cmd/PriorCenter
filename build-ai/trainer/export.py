@@ -25,7 +25,7 @@ def quantize_rows(w):
     return q, scale.astype(np.float32)
 
 
-def export(ckpt, out, name="Build AI pixel 16"):
+def export(ckpt, out, name="Build AI pixel 16", aliases=None):
     sd = {k: v.float().numpy() for k, v in ckpt["model"].items()}
     tensors, blobs, off = [], [], 0
 
@@ -46,7 +46,7 @@ def export(ckpt, out, name="Build AI pixel 16"):
             tensors.append({"name": k, "shape": list(w.shape), "dtype": "f32", "data": add(w.astype(np.float32))})
     palette = ckpt["palette"]
     header = {"format": 1, "name": name, "config": ckpt["config"], "vocab": ckpt["vocab"],
-              "palette": palette, "tensors": tensors, "step": ckpt.get("step", 0)}
+              "palette": palette, "tensors": tensors, "step": ckpt.get("step", 0), "aliases": aliases or {}}
     hb = json.dumps(header, separators=(",", ":")).encode()
     hb += b" " * ((-(8 + len(hb))) % 4)
     with open(out, "wb") as f:
@@ -78,9 +78,10 @@ def main():
     ap.add_argument("--ckpt", required=True)
     ap.add_argument("--out", default="model.bin")
     ap.add_argument("--name", default="Build AI pixel 16")
+    ap.add_argument("--aliases", help="aliases.json from make_aliases.py (synonyms and Persian words)")
     args = ap.parse_args()
     ck = torch.load(args.ckpt, map_location="cpu")
-    export(ck, args.out, args.name)
+    export(ck, args.out, args.name, json.load(open(args.aliases, encoding="utf-8")) if args.aliases else None)
     import os
     print(f"wrote {args.out} ({os.path.getsize(args.out) / 1e6:.1f} MB)")
 

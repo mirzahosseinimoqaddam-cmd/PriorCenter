@@ -152,24 +152,24 @@
 var T = {
   en: { tag: 'pixel art · offline', loading: 'Loading model…', import: 'Import model file', make: 'Make it', creative: 'Creativity', follow: 'Follow prompt',
     mirror: 'Symmetric', palOrig: 'Original colours', palGray: 'Grayscale', saveSmall: 'Save PNG', saveBig: 'Save big (512px)', again: 'More like this',
-    history: 'Recent', placeholder: 'Describe your pixel art in English, e.g. red apple, blue potion, green monster', noModel: 'No model yet. Import a model.bin file.',
+    history: 'Recent', placeholder: 'Describe your pixel art, e.g. red apple, blue potion, green monster (English or فارسی)', noModel: 'No model yet. Import a model.bin file.',
     model: 'Model', words: 'words', working: 'Drawing…', took: 'Made in', unknown: 'Words it does not know yet (ignored):', saved: 'Saved to Pictures/BuildAI',
     demo: 'This is a test model. It only knows simple shapes and colours (try “big red heart”).',
     badFile: 'That file is not a Build AI model.', empty: 'Type what you want first.', imported: 'Model imported', lang: 'فارسی',
     knows: 'Words it knows', search: 'Search words…', surprise: 'Surprise me', results: 'Results', sheet: 'Save all as sheet', editor: 'Edit',
     blank: 'Draw from scratch', pen: 'Pen', erase: 'Eraser', fill: 'Fill', pick: 'Pick colour', undo: 'Undo', gridBtn: 'Grid', allColours: 'All colours',
     finish: 'AI: finish my drawing', bottom: 'Redraw bottom half', finishHelp: 'Pixels you paint stay; the AI draws the rest to match your words.',
-    outline: 'Add outline', flip: 'Flip', share: 'Share', clear: 'Clear', cleared: 'History cleared', needPrompt: 'Write what it is in the box above first.' },
+    understood: 'Understood as:', outline: 'Add outline', flip: 'Flip', share: 'Share', clear: 'Clear', cleared: 'History cleared', needPrompt: 'Write what it is in the box above first.' },
   fa: { tag: 'پیکسل آرت · آفلاین', loading: 'در حال بارگذاری مدل…', import: 'وارد کردن فایل مدل', make: 'بساز', creative: 'خلاقیت', follow: 'پیروی از متن',
     mirror: 'قرینه', palOrig: 'رنگ‌های اصلی', palGray: 'سیاه‌وسفید', saveSmall: 'ذخیره PNG', saveBig: 'ذخیره بزرگ (۵۱۲)', again: 'مشابه این',
-    history: 'اخیر', placeholder: 'پیکسل آرتت را به انگلیسی توصیف کن، مثلا red apple یا blue potion', noModel: 'هنوز مدلی نیست. فایل model.bin را وارد کن.',
+    history: 'اخیر', placeholder: 'پیکسل آرتت را توصیف کن، مثلا سیب قرمز یا معجون آبی', noModel: 'هنوز مدلی نیست. فایل model.bin را وارد کن.',
     model: 'مدل', words: 'کلمه', working: 'در حال کشیدن…', took: 'ساخته شد در', unknown: 'کلمه‌هایی که هنوز بلد نیست (نادیده گرفته شد):', saved: 'در Pictures/BuildAI ذخیره شد',
     demo: 'این یک مدل آزمایشی است و فقط شکل‌ها و رنگ‌های ساده را می‌شناسد.',
     badFile: 'این فایل مدل Build AI نیست.', empty: 'اول بنویس چه می‌خواهی.', imported: 'مدل وارد شد', lang: 'English',
     knows: 'کلمه‌هایی که بلد است', search: 'جستجوی کلمه…', surprise: 'غافلگیرم کن', results: 'نتیجه‌ها', sheet: 'ذخیره همه در یک تصویر', editor: 'ویرایش',
     blank: 'از صفر بکش', pen: 'قلم', erase: 'پاک‌کن', fill: 'سطل رنگ', pick: 'برداشتن رنگ', undo: 'برگشت', gridBtn: 'خطوط', allColours: 'همه رنگ‌ها',
     finish: 'هوش مصنوعی: کامل کن', bottom: 'نیمه پایین را دوباره بکش', finishHelp: 'پیکسل‌هایی که خودت می‌کشی می‌مانند و بقیه را هوش مصنوعی مطابق متن می‌کشد.',
-    outline: 'افزودن دور خط', flip: 'قرینه کردن', share: 'اشتراک', clear: 'پاک کردن', cleared: 'تاریخچه پاک شد', needPrompt: 'اول در کادر بالا بنویس این چیست.' }
+    understood: 'برداشت:', outline: 'افزودن دور خط', flip: 'قرینه کردن', share: 'اشتراک', clear: 'پاک کردن', cleared: 'تاریخچه پاک شد', needPrompt: 'اول در کادر بالا بنویس این چیست.' }
 };
 var PALS = {
   gb: [[15,56,15],[48,98,48],[139,172,15],[155,188,15]],
@@ -287,11 +287,12 @@ function onWorker(ev) {
   } else if (d.type === 'done') {
     pending.out[d.part] = d; pending.left--;
     if (pending.left) return;
-    var all = [], ms = 0, unknown = [], p = pending;
-    p.out.forEach(function (r) { all = all.concat(r.images.map(function (a) { return Array.from(a); })); ms = Math.max(ms, r.ms); unknown = r.unknown; });
+    var all = [], ms = 0, unknown = [], mapped = [], p = pending;
+    p.out.forEach(function (r) { all = all.concat(r.images.map(function (a) { return Array.from(a); })); ms = Math.max(ms, r.ms); unknown = r.unknown; mapped = r.mapped || []; });
     pending = null;
     $('bar').classList.add('hidden'); setBusy(false);
     var msg = t('took') + ' ' + (ms / 1000).toFixed(1) + 's';
+    if (mapped.length) msg += ' · ' + t('understood') + ' ' + mapped.join(', ');
     if (unknown.length) msg += ' · ' + t('unknown') + ' ' + unknown.join(', ');
     $('info').textContent = msg;
     if (p.edit) { pushUndo(); editImg = all[0]; redrawEditor(); }

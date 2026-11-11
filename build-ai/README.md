@@ -22,6 +22,14 @@ build-ai/
   models/    model files bundled into the APK
 ```
 
+## Ready AI used
+
+- **Words:** pretrained [GloVe](https://github.com/RaRe-Technologies/gensim-data) word vectors map the 40,000 most common English words
+  to the nearest word the model knows (puppy → dog, blade → knife); `persian_words.json` maps about 280 Persian words.
+  `make_aliases.py` builds the map and `export.py --aliases` stores it in `model.bin`. The app shows what it understood.
+- **Pictures:** `synth.py` uses [Pixel Art XL](https://huggingface.co/nerijs/pixel-art-xl) (SDXL + LCM LoRA) on a GPU to draw
+  every concept in `concepts.txt` (378 halal concepts) 8 times. The drawings become extra captioned 16×16 training data (notebook step 1b).
+
 ## Status
 
 | Step | State |

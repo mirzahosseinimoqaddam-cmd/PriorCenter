@@ -21,7 +21,7 @@ from model import Config, PixelModel, count_params
 from prepare import is_halal
 
 
-def build_vocab(caps, size, min_count=2):
+def build_vocab(caps, size, min_count=1):
     cnt = Counter(w for c in caps for w in re.findall(r"[a-z0-9]+", c))
     words = [w for w, n in cnt.most_common(size - 2) if n >= min_count]
     return ["<pad>", "<unk>"] + words
