@@ -1,0 +1,40 @@
+name: NEON app
+
+on:
+  push:
+    paths:
+      - 'neon/**'
+      - '.github/workflows/neon-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Play every game headless (no crashes, no broken drawing)
+        run: node neon/web/test.js
+      - name: Build APK
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+        run: bash neon/android/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: neon/android/Neon.apk
+      - name: Publish as the latest test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release delete neon-latest --yes --cleanup-tag || true
+          gh release create neon-latest neon/android/Neon.apk \
+            --target "${{ github.sha }}" --prerelease --title "NEON (test build ${{ github.run_number }})" \
+            --notes "NEON: 100+ neon line games for Android. Make and mix your own. Plays offline; ONLINE mode connects two phones."

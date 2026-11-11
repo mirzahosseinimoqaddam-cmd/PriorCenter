@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#04000e">
+<title>NEON</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.png">
+<style>
+:root{--bg:#04000e;--pk:#ff2bd6;--cy:#00f0ff;--ye:#fff01f;--gr:#39ff14;--tx:#e9e6ff;--dim:#8a84b8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:15px/1.4 ui-monospace,Menlo,Consolas,monospace;overflow:hidden;touch-action:manipulation}
+button,input,select{font:inherit;color:inherit}
+.scr{position:fixed;inset:0;display:none}.scr.on{display:block}
+#home{overflow-y:auto;padding:max(14px,env(safe-area-inset-top)) 14px 40px;background:radial-gradient(ellipse at 50% -10%,#3a0a5a55,transparent 60%),repeating-linear-gradient(0deg,#ffffff06 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,#ffffff06 0 1px,transparent 1px 40px)}
+.logo{font-size:64px;letter-spacing:12px;margin:8px 0 0;text-align:center;color:#fff;text-shadow:0 0 6px var(--pk),0 0 18px var(--pk),0 0 40px var(--pk);animation:fl 4s infinite}
+@keyframes fl{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.4}94%{opacity:1}96%{opacity:.6}97%{opacity:1}}
+.sub{text-align:center;color:var(--cy);text-shadow:0 0 8px var(--cy);margin:0 0 14px;font-size:13px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;max-width:900px;margin:0 auto 10px}
+.bar input{flex:1 1 160px;min-width:0}
+input,select{background:#0c0420;border:1.5px solid #5b2a9a;border-radius:10px;padding:10px 12px;outline:none}
+input:focus,select:focus{border-color:var(--cy);box-shadow:0 0 10px #00f0ff66}
+.nb{background:transparent;border:2px solid var(--c,var(--pk));color:#fff;border-radius:12px;padding:10px 14px;cursor:pointer;text-shadow:0 0 6px var(--c,var(--pk));box-shadow:0 0 10px var(--c,var(--pk)),inset 0 0 10px color-mix(in srgb,var(--c,var(--pk)) 40%,transparent);font-weight:700;letter-spacing:1px}
+.nb:active{transform:scale(.96)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;max-width:900px;margin:0 auto 14px}
+.chip{border:1px solid #5b2a9a;background:#0c0420;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:12px;letter-spacing:1px}
+.chip.on{border-color:var(--cy);color:var(--cy);box-shadow:0 0 10px #00f0ff88}
+#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;max-width:900px;margin:0 auto}
+.card{border:2px solid var(--c);border-radius:14px;padding:10px;cursor:pointer;background:#0a0318;box-shadow:0 0 12px color-mix(in srgb,var(--c) 55%,transparent);min-height:122px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.card canvas{width:100%;height:56px;display:block}
+.card b{color:#fff;text-shadow:0 0 6px var(--c);font-size:13px;letter-spacing:1px}
+.card small{color:var(--dim);font-size:11px}
+.tag{display:inline-block;border:1px solid currentColor;border-radius:6px;padding:0 5px;margin-right:4px;font-size:10px}
+#game{background:#04000e}
+#cv{width:100%;height:100%;display:block;touch-action:none}
+.hb{position:fixed;top:max(8px,env(safe-area-inset-top));z-index:5;width:40px;height:40px;border-radius:50%;padding:0;font-size:16px;--c:var(--cy)}
+#bX{left:8px}#bP{right:8px}
+.ov{position:fixed;inset:0;z-index:10;background:#04000ecc;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.ov[hidden]{display:none}
+.box{width:100%;max-width:420px;max-height:92vh;overflow-y:auto;border:2px solid var(--pk);border-radius:18px;padding:18px;background:#0a0318;box-shadow:0 0 30px #ff2bd688;text-align:center}
+.box h2{margin:0 0 4px;color:#fff;text-shadow:0 0 10px var(--pk),0 0 24px var(--pk);letter-spacing:2px}
+.box p{color:var(--dim);margin:4px 0 14px}
+.box .nb{display:block;width:100%;margin:8px 0}
+.form{display:grid;gap:10px;text-align:left}.form label{display:grid;gap:4px;font-size:12px;color:var(--dim)}
+.mods{display:flex;flex-wrap:wrap;gap:6px}.mods label{display:flex;flex-direction:row;gap:4px;align-items:center;border:1px solid #5b2a9a;border-radius:8px;padding:4px 8px;color:var(--tx)}
+input[type=range]{padding:0;accent-color:var(--pk)}
+.code{font-size:44px;letter-spacing:10px;color:var(--ye);text-shadow:0 0 12px var(--ye);margin:6px 0}
+.help{font-size:12px;color:var(--dim);text-align:left}
+</style>
+</head>
+<body>
+<div id="home" class="scr on">
+  <h1 class="logo">NEON</h1>
+  <p class="sub" id="sub">neon line games · make your own</p>
+  <div class="bar">
+    <input id="q" placeholder="Search games…" autocomplete="off">
+    <button class="nb" id="bCreate" style="--c:var(--gr)">+ CREATE</button>
+    <button class="nb" id="bMash" style="--c:var(--ye)">⚡ MASHUP</button>
+    <button class="nb" id="bOnline" style="--c:var(--cy)">ONLINE</button>
+    <button class="nb" id="bSet" style="--c:#b026ff">⚙</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div id="list"></div>
+</div>
+<div id="game" class="scr">
+  <canvas id="cv"></canvas>
+  <button class="nb hb" id="bX" aria-label="Quit">✕</button>
+  <button class="nb hb" id="bP" aria-label="Pause">II</button>
+</div>
+<div id="ov" class="ov" hidden><div class="box" id="box"></div></div>
+<script src="engine.js"></script>
+<script src="games1.js"></script>
+<script src="games2.js"></script>
+<script src="games3.js"></script>
+<script src="shell.js"></script>
+</body>
+</html>
