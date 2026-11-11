@@ -5,7 +5,7 @@ Download my apps. Pick an app, tap its download link on your phone, and install 
 | App | What it does | Download |
 |---|---|---|
 | **Gym Tracker** (Android) | Offline workout log, workout and nutrition programs, water and progress. Your data stays on your phone. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [all versions](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
-| **EinsteLab** (Android and iPhone, test) | 2D physics labs in English and Farsi: magnetism, electric fields, charged particles, motion, optics and sound, with guided experiments checked against textbook formulas. Opens with an access key; each key works for 3 days. | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) · [EinsteLab.ipa (iPhone)](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.ipa) |
+| **EinsteLab** (Android and iPhone, test) | A 2D physics lab in English and Farsi: 61 guided experiments in 11 labs (motion, magnetism, electric fields, circuits, charged particles, optics, sound, heat and gases, fluids, gravity and orbits, modern physics), each checked live against the textbook formula. Opens with an access key; each key works once, for 3 days. [About the app](einstelab/README.md) | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) · [EinsteLab.ipa (iPhone)](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.ipa) |
 
 ## Installing an Android app (APK)
 
@@ -32,7 +32,7 @@ With a free Apple ID the app must be re-installed every 7 days.
 | برنامه | کاربرد | دانلود |
 |---|---|---|
 | **جیم ترکر** (اندروید) | ثبت آفلاین تمرین، برنامه تمرینی و تغذیه‌ای، آب و پیشرفت. اطلاعاتت فقط روی گوشی خودت می‌ماند. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [همه نسخه‌ها](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
-| **انیشتلب** (اندروید و آیفون، آزمایشی) | آزمایشگاه‌های فیزیک دوبعدی به فارسی و انگلیسی: مغناطیس، میدان الکتریکی، ذرات باردار، حرکت، نورشناسی و صوت، با آزمایش‌های راهنما که با فرمول کتاب درسی سنجیده می‌شوند. با کلید دسترسی باز می‌شود؛ هر کلید سه روز کار می‌کند. | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) · [EinsteLab.ipa (iPhone)](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.ipa) |
+| **انیشتلب** (اندروید و آیفون، آزمایشی) | آزمایشگاه فیزیک دوبعدی به فارسی و انگلیسی: ۶۱ آزمایش راهنما در ۱۱ آزمایشگاه (حرکت، مغناطیس، میدان الکتریکی، مدار، ذرات باردار، نورشناسی، صوت، گرما و گازها، شاره‌ها، گرانش و مدارها، فیزیک جدید) که هر کدام به‌صورت زنده با فرمول کتاب درسی سنجیده می‌شود. با کلید دسترسی باز می‌شود؛ هر کلید یک بار و برای سه روز کار می‌کند. [دربارهٔ برنامه](einstelab/README.md) | [EinsteLab.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.apk) · [EinsteLab.ipa (آیفون)](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/einstelab-latest/EinsteLab.ipa) |
 
 ## نصب برنامه اندروید (APK)
 

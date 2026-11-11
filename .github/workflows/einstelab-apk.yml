@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Build the web app
+        run: bash einstelab/build-web.sh
       - name: Build APK
         env:
           VERSION_CODE: ${{ github.run_number }}
@@ -32,6 +34,7 @@ jobs:
       - name: Build unsigned IPA
         working-directory: einstelab/ios
         run: |
+          bash ../build-web.sh
           brew install xcodegen
           cp ../android/assets/index.html Resources/index.html
           xcodegen generate
@@ -57,4 +60,4 @@ jobs:
           gh release delete einstelab-latest --yes --cleanup-tag || true
           gh release create einstelab-latest android/EinsteLab.apk ios/EinsteLab.ipa \
             --target "${{ github.sha }}" --prerelease --title "EinsteLab (test build ${{ github.run_number }})" \
-            --notes "Test build of EinsteLab for Android (APK) and iPhone (unsigned IPA, install with Sideloadly or AltStore). Opens only with an access key; each key works for 3 days on the device."
+            --notes "EinsteLab for Android (APK) and iPhone (unsigned IPA, install with Sideloadly or AltStore). Opens only with an access key; each key works for 3 days on the device."
