@@ -1,7 +1,14 @@
 # Launching NEON on Google Play
 
-Everything here is already built by GitHub Actions on every push to `neon/**`:
-`Neon.apk` (the `neon-latest` release) and `Neon.aab` (the `play-store-bundle` artifact of the run).
+Everything here is built and checked by GitHub Actions on every push to `neon/**`
+(all games played headless, APK signature verified, package `com.priorcenter.neon`, target SDK 35, no Internet
+permission, AAB validated with bundletool):
+
+- APK (install on any Android phone): https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/neon-latest/Neon.apk
+- AAB (upload to Google Play): https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/neon-latest/Neon.aab
+
+**Before the first Play Store upload, do step 1–2 below.** Until then both files are signed with the test key that is
+public in this repo; Google Play would accept it as your upload key, but anyone could then sign updates as you.
 
 ## 1. Make your release key (once, keep it forever)
 
