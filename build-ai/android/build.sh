@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds BuildAI.apk with the plain Android build tools (no Gradle). Needs ANDROID_HOME and a JDK.
-# The app page comes from ../web, the model from ../models (pixel16.bin if trained, else the demo).
+# The app page comes from ../web, the model from ../models/pixel16.bin.
 set -euo pipefail
 cd "$(dirname "$0")"
 SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
@@ -8,10 +8,7 @@ BT="$(ls -d "$SDK"/build-tools/* | sort -V | tail -1)"
 JAR="$(ls -d "$SDK"/platforms/android-* | sort -V | tail -1)/android.jar"
 rm -rf build assets && mkdir -p build/gen build/classes build/dex assets
 cp ../web/index.html ../web/engine.js assets/
-MODEL=../models/pixel16.bin
-[ -f "$MODEL" ] || MODEL=../models/demo-shapes16.bin
-cp "$MODEL" assets/model.bin
-echo "Bundled model: $MODEL"
+cp ../models/pixel16.bin assets/model.bin
 "$BT/aapt2" compile --dir res -o build/res.zip
 # -0 bin: keep the model uncompressed so it opens fast
 "$BT/aapt2" link -o build/base.apk -I "$JAR" --manifest AndroidManifest.xml -A assets -0 bin --java build/gen build/res.zip \

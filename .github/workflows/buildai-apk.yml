@@ -24,9 +24,9 @@ jobs:
         run: |
           node -e "
           const E=require('./build-ai/web/engine.js'),fs=require('fs');
-          const f=fs.existsSync('build-ai/models/pixel16.bin')?'build-ai/models/pixel16.bin':'build-ai/models/demo-shapes16.bin';
+          const f='build-ai/models/pixel16.bin';
           const b=fs.readFileSync(f);const m=E.loadModel(b.buffer.slice(b.byteOffset,b.byteOffset+b.length));
-          const r=E.generate(m,'big red heart',{count:2,seed:1});
+          const r=E.generate(m,'red heart',{count:2,seed:1});
           if(r.images.length!==2||r.images[0].length!==m.cfg.size*m.cfg.size)throw new Error('bad output');
           console.log(f,'ok');"
       - name: Build APK
@@ -46,4 +46,4 @@ jobs:
           gh release delete buildai-latest --yes --cleanup-tag || true
           gh release create buildai-latest build-ai/android/BuildAI.apk \
             --target "${{ github.sha }}" --prerelease --title "Build AI (test build ${{ github.run_number }})" \
-            --notes "Build AI: offline pixel-art maker for Android. Runs fully on your phone. This build carries the model in build-ai/models (the shapes-only demo until the real 16x16 model is trained)."
+            --notes "Build AI: offline pixel-art maker for Android. Runs fully on your phone. Carries the 16x16 model trained on 10k free images (build-ai/models/pixel16.bin)."
