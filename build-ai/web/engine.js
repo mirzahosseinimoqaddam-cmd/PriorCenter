@@ -182,16 +182,16 @@ var BuildAIEngine = (function () {
   }
 
   /* Make `count` pictures for a prompt.
-   * opts: count, temperature (1.0), topK (40), guidance (3.0), seed, mirror (false),
+   * opts: count, temperature (0.7), topK (10), guidance (2.0), seed, mirror (false),
    *       fixed (array of size*size: palette id to keep that pixel, -1 to let the AI draw it)
    * onProgress(done, total) is called as rows finish.
    * Returns { images: [Uint8Array(size*size) of palette ids], unknown: [words not known] }
    */
   function generate(m, prompt, opts, onProgress) {
     opts = opts || {};
-    var count = opts.count || 1, g = opts.guidance === undefined ? 3.0 : opts.guidance;
-    var temperature = opts.temperature === undefined ? 1.0 : opts.temperature;
-    var topK = opts.topK === undefined ? 40 : opts.topK;
+    var count = opts.count || 1, g = opts.guidance === undefined ? 2.0 : opts.guidance;
+    var temperature = opts.temperature === undefined ? 0.7 : opts.temperature;
+    var topK = opts.topK === undefined ? 10 : opts.topK;
     var fixed = opts.fixed || null;
     var rand = rng(opts.seed === undefined ? (Math.random() * 4294967296) >>> 0 : opts.seed);
     var c = m.cfg, N = c.size * c.size, L = c.text_len;

@@ -115,7 +115,7 @@ class PixelModel(nn.Module):
         return self.head(self.ln_f(x[:, c.text_len :]))
 
     @torch.no_grad()
-    def generate(self, text, temperature=1.0, top_k=40, guidance=3.0, generator=None):
+    def generate(self, text, temperature=0.7, top_k=10, guidance=2.0, generator=None):
         """Slow reference sampler (full recompute each step). The phone uses a KV cache."""
         c = self.c
         B = text.shape[0]
