@@ -10,7 +10,7 @@ E.pong = {
     for (let i = 0; i < g.n; i++) B.push(sv(i % 2 ? -1 : 1));
     return dt => {
       p[0] = follow(P[0], p[0], 420, dt, pw / 2, W - pw / 2);
-      if (g.cpu) { const t = B.reduce((a, b) => b.vy < 0 && (!a || b.y < a.y) ? b : a, null), d = (t ? t.x : W / 2) - p[1], v = 250 * g.sp * dt; p[1] = clamp(p[1] + clamp(d, -v, v), pw / 2, W - pw / 2) }
+      if (g.cpu) { const t = B.reduce((a, b) => b.vy < 0 && (!a || b.y < a.y) ? b : a, null), d = (t ? t.x : W / 2) - p[1], v = 250 * g.sp * g.ai * dt; p[1] = clamp(p[1] + clamp(d, -v, v), pw / 2, W - pw / 2) }
       else p[1] = follow(P[1], p[1], 420, dt, pw / 2, W - pw / 2);
       for (const b of B) {
         b.x += b.vx * dt; b.y += b.vy * dt;
@@ -55,7 +55,7 @@ E.snake = {
         if (d[0] == -n.d[0] && d[1] == -n.d[1]) continue;
         const nx = x + d[0], ny = y + d[1]; if (!free(nx, ny)) continue;
         const room = flood(nx, ny, 80);
-        let v = room * (T ? 1 : .2) + rnd(2);
+        let v = room * (T ? 1 : .2) + rnd([12, 2, .5][g.diff]);
         if (!T && food.length) v -= Math.min(...food.map(f => abs(f[0] - nx) + abs(f[1] - ny)));
         if (T) { const o = S[0].b[S[0].b.length - 1]; v -= (abs(o[0] - nx) + abs(o[1] - ny)) * .3 }
         if (v > bv) { bv = v; best = d }

@@ -30,9 +30,17 @@ E.tanks = {
         t.cd -= dt;
         if (i == 1 && g.cpu) {
           const o = T[0], want = atan2(o.y - t.y, o.x - t.x), d = angDiff(t.a, want), dist = hyp(o.x - t.x, o.y - t.y);
-          t.a += clamp(d, -2.6 * dt, 2.6 * dt);
-          const v = (dist > 170 ? 1 : -.4) * 100 * g.sp; t.x += cos(t.a) * v * dt + sin(t.a + VIEWT()) * 40 * dt; t.y += sin(t.a) * v * dt;
-          if (abs(d) < .12 && rnd() < dt * 3) fire(t, i);
+          const ox = t.x, oy = t.y;
+          if (t.esc > 0) { t.esc -= dt; t.a = t.ea; t.x += cos(t.a) * 110 * g.sp * dt; t.y += sin(t.a) * 110 * g.sp * dt } // backing out of a wall
+          else {
+            t.a += clamp(d, -2.6 * g.ai * dt, 2.6 * g.ai * dt);
+            const v = (dist > 170 ? 1 : -.4) * 100 * g.sp; t.x += cos(t.a) * v * dt + sin(t.a + VIEWT()) * 40 * dt; t.y += sin(t.a) * v * dt;
+            const los = ![...Array(16)].some((_, k) => walls.some(w => inRect(t.x + (o.x - t.x) * k / 16, t.y + (o.y - t.y) * k / 16, w))); // only shoot with a clear line
+            if (los && abs(d) < .12 && rnd() < dt * 3 * g.ai) fire(t, i);
+          }
+          for (const w of walls) pushOut(t, 15, w);
+          t.st = hyp(t.x - ox, t.y - oy) < 25 * dt ? (t.st || 0) + dt : 0;
+          if (t.st > .5) { t.st = 0; t.esc = .8; t.ea = t.a + PI + rnd(-1, 1) }
         } else {
           const I = P[i], m = Math.min(1, hyp(I.x, I.y));
           if (m > .2) { t.a = atan2(I.y, I.x); t.x += cos(t.a) * 130 * g.sp * m * dt; t.y += sin(t.a) * 130 * g.sp * m * dt }
@@ -75,9 +83,9 @@ E.sumo = {
           if (i == 1 && g.cpu) {
             const o = D[0], a = atan2(o.y - d.y, o.x - d.x), toC = hyp(d.x - cx, d.y - cy) > R * .7;
             ix = toC ? (cx - d.x) / R : cos(a); iy = toC ? (cy - d.y) / R : sin(a);
-            dash = hyp(o.x - d.x, o.y - d.y) < 90 && rnd() < dt * 2;
+            dash = hyp(o.x - d.x, o.y - d.y) < 90 && rnd() < dt * 2 * g.ai;
           } else { const I = P[i]; ix = I.x; iy = I.y; dash = I.ap }
-          const k = 520 * g.sp; d.vx += ix * k * dt; d.vy += iy * k * dt;
+          const k = 520 * g.sp * (i == 1 && g.cpu ? g.ai : 1); d.vx += ix * k * dt; d.vy += iy * k * dt;
           d.cd -= dt; if (dash && d.cd <= 0 && hyp(ix, iy) > .1) { const m = hyp(ix, iy); d.vx += ix / m * 380; d.vy += iy / m * 380; d.cd = 1.2; sfx(400, .1, 'triangle'); boom(d.x, d.y, d.col, 8) }
           d.vx *= Math.pow(.35, dt); d.vy *= Math.pow(.35, dt); d.x += d.vx * dt; d.y += d.vy * dt;
         });
@@ -102,17 +110,21 @@ E.hockey = {
   t: 'Hockey', c: 'sport', vs: 1, n: 1, v: [['NEON HOCKEY', {}], ['HOCKEY TURBO', { sp: 1.4, pal: 'INFERNO' }], ['HOCKEY WIDE GOALS', { n: 2 }], ['HOCKEY TINY', { mods: ['tiny'], pal: 'MINT' }]],
   f(g) {
     const K = g.K, gw = (g.n > 1 ? 160 : 120), mr = 26 * g.sz, pr = 15 * g.sz, s = [0, 0];
-    const M = [{ x: W / 2, y: 560, vx: 0, vy: 0 }, { x: W / 2, y: 80, vx: 0, vy: 0 }]; let pk;
+    const M = [{ x: W / 2, y: 560, vx: 0, vy: 0 }, { x: W / 2, y: 80, vx: 0, vy: 0 }]; let pk, idle = 0;
     const serve = d => pk = { x: W / 2, y: H / 2 + d * 60, vx: 0, vy: 0 };
     serve(1);
     return dt => {
       M.forEach((m, i) => {
         const ox = m.x, oy = m.y, lo = i ? mr : H / 2 + mr, hi = i ? H / 2 - mr : H - mr;
         if (i == 1 && g.cpu) {
-          let tx_ = W / 2, ty_ = 90; if (pk.y < H / 2 + 20) { tx_ = pk.x; ty_ = pk.y - mr }
-          const v = 300 * g.sp * dt, dx = tx_ - m.x, dy = ty_ - m.y, d = hyp(dx, dy) || 1; m.x += dx / d * Math.min(v, d); m.y += dy / d * Math.min(v, d);
+          let tx_ = W / 2, ty_ = 90;
+          if (pk.y < H / 2 + 20) {
+            if (pk.y < m.y + 6) { tx_ = pk.x + (pk.x < W / 2 ? 50 : -50); ty_ = Math.max(mr, pk.y - mr - pr - 12) } // get goal-side of the puck first, never knock it into its own goal
+            else { tx_ = pk.x + clamp((pk.x - W / 2) * .2, -15, 15); ty_ = pk.y - mr * .6 }
+          }
+          const v = 300 * g.sp * g.ai * dt, dx = tx_ - m.x, dy = ty_ - m.y, d = hyp(dx, dy) || 1; m.x += dx / d * Math.min(v, d); m.y += dy / d * Math.min(v, d);
         } else { const I = P[i]; if (I.tx != null) { m.x += (I.tx - m.x) * Math.min(1, dt * 25); m.y += (I.ty - m.y) * Math.min(1, dt * 25) } else { m.x += I.x * 420 * dt; m.y += I.y * 420 * dt } }
-        m.x = clamp(m.x, mr, W - mr); m.y = clamp(m.y, lo, hi); m.vx = (m.x - ox) / dt; m.vy = (m.y - oy) / dt;
+        m.x = clamp(m.x, mr, W - mr); m.y = clamp(m.y, lo, hi); m.vx = (m.x - ox) / Math.max(dt, .001); m.vy = (m.y - oy) / Math.max(dt, .001);
         const dx = pk.x - m.x, dy = pk.y - m.y, d = hyp(dx, dy);
         if (d < mr + pr && d > 0) {
           const nx = dx / d, ny = dy / d; pk.x = m.x + nx * (mr + pr); pk.y = m.y + ny * (mr + pr);
@@ -121,6 +133,8 @@ E.hockey = {
       });
       const sp = hyp(pk.vx, pk.vy), mx = 900 * g.sp; if (sp > mx) { pk.vx *= mx / sp; pk.vy *= mx / sp }
       pk.vx *= Math.pow(.7, dt); pk.vy *= Math.pow(.7, dt); pk.x += pk.vx * dt; pk.y += pk.vy * dt;
+      idle = hyp(pk.vx, pk.vy) < 30 ? idle + dt : 0;
+      if (idle > 3) { idle = 0; pk.vy = (pk.y > H / 2 ? -1 : 1) * 140; pk.vx += rnd(-40, 40) } // a dead puck drifts to the centre line
       if (pk.x < pr || pk.x > W - pr) { pk.vx = -pk.vx; pk.x = clamp(pk.x, pr, W - pr); sfx(300, .03) }
       const inGoal = abs(pk.x - W / 2) < gw / 2;
       if (!inGoal && (pk.y < pr || pk.y > H - pr)) { pk.vy = -pk.vy; pk.y = clamp(pk.y, pr, H - pr); sfx(300, .03) }
@@ -147,7 +161,7 @@ E.duel = {
       const tap = [P[0].ap, g.cpu ? 0 : P[1].ap];
       if (st == 'wait') {
         if (tap[0] || tap[1]) pt(tap[0] ? 1 : 0, 'FALSE START!');
-        else if (t <= 0) { st = 'go'; cpuT = rnd(.22, .5) / g.n; sfx(1200, .15) }
+        else if (t <= 0) { st = 'go'; cpuT = rnd(.22, .5) / g.n / g.ai; sfx(1200, .15) }
       } else if (st == 'go') {
         if (g.cpu && (cpuT -= dt) <= 0) tap[1] = 1;
         if (tap[0] || tap[1]) { pt(tap[0] ? 0 : 1, 'FASTEST!'); boom(W / 2, tap[0] ? 480 : 160, tap[0] ? K.a : K.b, 50, 300) }
@@ -170,7 +184,7 @@ E.tug = {
     return dt => {
       T += dt;
       if (P[0].ap) { p += 9; sfx(400 + p, .03) }
-      if (g.cpu) { if ((ct -= dt) <= 0) { ct = 1 / rnd(5, 7.5 + T / 20); p -= 9 } } else if (P[1].ap) { p -= 9; sfx(400 - p, .03) }
+      if (g.cpu) { if ((ct -= dt) <= 0) { ct = 1 / (rnd(5, 7.5 + T / 20) * g.ai); p -= 9 } } else if (P[1].ap) { p -= 9; sfx(400 - p, .03) }
       const y = H / 2 + p * (220 / goal);
       ln(W / 2, 30, W / 2, H - 30, K.e, 3);
       for (let i = -3; i <= 3; i++) ln(W / 2 - 14, y + i * 14, W / 2 + 14, y + i * 14 + 7, K.e, 2);
@@ -201,7 +215,7 @@ E.c4 = {
     const drop = c => { const r = col(c); if (r < 0) return; b[r * 7 + c] = turn + 1; sfx(turn ? 330 : 440, .1, 'triangle'); boom(X0 + c * CW + CW / 2, Y0 + r * CW + CW / 2, turn ? K.b : K.a, 10); const w = winner(); if (w) { wl = w[1]; end = 1.2; g.score = w[0] == 1 ? 1 : 0 } else if (b.every(x => x)) { end = 1.2; wl = [] } turn ^= 1; ct = .5 };
     return dt => {
       if (end) { if ((end -= dt) <= 0) { const w = winner(); win(g, w ? w[0] - 1 : -1) } }
-      else if (turn == 1 && g.cpu) { if ((ct -= dt) <= 0) { let bc = 3, bv = -1e9; const d = [2, 4, 6][g.n - 1] || 4; for (const c of [3, 2, 4, 1, 5, 0, 6]) { const r = col(c); if (r < 0) continue; b[r * 7 + c] = 2; const v = mm(d, -1e9, 1e9, false) + rnd(g.n == 1 ? 300 : 1); b[r * 7 + c] = 0; if (v > bv) { bv = v; bc = c } } cur = bc; drop(bc) } }
+      else if (turn == 1 && g.cpu) { if ((ct -= dt) <= 0) { let bc = 3, bv = -1e9; const d = clamp(([2, 4, 5][g.n - 1] || 4) + g.diff - 1, 1, 6); for (const c of [3, 2, 4, 1, 5, 0, 6]) { const r = col(c); if (r < 0) continue; b[r * 7 + c] = 2; const v = mm(d, -1e9, 1e9, false) + rnd(g.n == 1 || g.diff == 0 ? 300 : 1); b[r * 7 + c] = 0; if (v > bv) { bv = v; bc = c } } cur = bc; drop(bc) } }
       else {
         const I = turnIn(g, turn);
         if (I.dp == 'l') cur = Math.max(0, cur - 1); if (I.dp == 'r') cur = Math.min(6, cur + 1);
@@ -228,7 +242,7 @@ E.ttt = {
     const place = i => { if (b[i] || end) return; b[i] = turn + 1; sfx(turn ? 330 : 520, .1, 'triangle'); const w = winner(); if (w) { wl = w[1]; end = 1.2; g.score = w[0] == 1 ? 1 : 0 } else if (b.every(x => x)) { end = 1.2; wl = [] } turn ^= 1; ct = .4 };
     return dt => {
       if (end) { if ((end -= dt) <= 0) { const w = winner(); win(g, w ? w[0] - 1 : -1) } }
-      else if (turn == 1 && g.cpu) { if ((ct -= dt) <= 0) { let bi = -1; if (N == 3) { let bv = -9; for (let i = 0; i < 9; i++)if (!b[i]) { b[i] = 2; const v = mm(false) + rnd(.3); b[i] = 0; if (v > bv) { bv = v; bi = i } } } else bi = heur(); place(bi) } }
+      else if (turn == 1 && g.cpu) { if ((ct -= dt) <= 0) { let bi = -1; if (g.diff == 0 && rnd() < .45) { const e = b.map((v, i) => v ? -1 : i).filter(i => i >= 0); bi = pick(e) } else if (N == 3) { let bv = -9; for (let i = 0; i < 9; i++)if (!b[i]) { b[i] = 2; const v = mm(false) + rnd(.3); b[i] = 0; if (v > bv) { bv = v; bi = i } } } else bi = heur(); place(bi) } }
       else {
         const I = turnIn(g, turn), r = cur / N | 0, c = cur % N;
         if (I.dp) cur = clamp(r + (I.dp == 'd') - (I.dp == 'u'), 0, N - 1) * N + clamp(c + (I.dp == 'r') - (I.dp == 'l'), 0, N - 1);

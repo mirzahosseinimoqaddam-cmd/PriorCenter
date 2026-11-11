@@ -5,7 +5,7 @@ Download my apps. Pick an app, tap its download link on your phone, and install 
 | App | What it does | Download |
 |---|---|---|
 | **Gym Tracker** (Android) | Offline workout log, workout and nutrition programs, water and progress. Your data stays on your phone. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [all versions](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
-| **NEON** (Android) | 136 neon line games (arcade, puzzle, party, sport) plus a creator to make and mix your own. 1 player, vs CPU, 2 players on one phone, or online on two phones. Plays offline. | [Neon.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/neon-latest/Neon.apk) · [all versions](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=neon&expanded=true) |
+| **NEON** (Android) | 317 neon line games in 52 groups (arcade, puzzle, party, sport, board) plus a creator to make, mix and share your own. Daily challenge, favorites, three CPU levels. 1 player, vs CPU, 2 players on one phone, or online on two phones. Plays offline. | [Neon.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/neon-latest/Neon.apk) · [all versions](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=neon&expanded=true) |
 
 ## Installing an Android app (APK)
 
@@ -24,7 +24,7 @@ New versions install over the old one and keep your data.
 | برنامه | کاربرد | دانلود |
 |---|---|---|
 | **جیم ترکر** (اندروید) | ثبت آفلاین تمرین، برنامه تمرینی و تغذیه‌ای، آب و پیشرفت. اطلاعاتت فقط روی گوشی خودت می‌ماند. | [GymTracker.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/gymtracker-latest/GymTracker.apk) · [همه نسخه‌ها](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=gymtracker&expanded=true) |
-| **نئون** (اندروید) | ۱۳۶ بازی خطی نئونی (آرکید، پازل، گروهی، ورزشی) و سازنده‌ای برای ساختن و ترکیب بازی‌های خودت. تک‌نفره، مقابل کامپیوتر، دونفره روی یک گوشی یا آنلاین با دو گوشی. بدون اینترنت هم کار می‌کند. | [Neon.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/neon-latest/Neon.apk) · [همه نسخه‌ها](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=neon&expanded=true) |
+| **نئون** (اندروید) | ۳۱۷ بازی خطی نئونی در ۵۲ دسته (آرکید، پازل، گروهی، ورزشی، صفحه‌ای) و سازنده‌ای برای ساختن، ترکیب و اشتراک بازی‌های خودت. چالش روزانه، علاقه‌مندی‌ها و سه سطح سختی کامپیوتر. تک‌نفره، مقابل کامپیوتر، دونفره روی یک گوشی یا آنلاین با دو گوشی. بدون اینترنت هم کار می‌کند. | [Neon.apk](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases/download/neon-latest/Neon.apk) · [همه نسخه‌ها](https://github.com/mirzahosseinimoqaddam-cmd/PriorCenter/releases?q=neon&expanded=true) |
 
 ## نصب برنامه اندروید (APK)
 

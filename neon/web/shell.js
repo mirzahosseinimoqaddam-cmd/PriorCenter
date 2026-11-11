@@ -79,11 +79,16 @@ function dlg(html, btns = []) {
 }
 const close = () => $('#ov').hidden = true;
 const MODE_LABEL = { solo: '▶ 1 PLAYER', cpu: '▶ VS CPU', local: '▶ 2 PLAYERS · ONE DEVICE', hot: '▶ 2 PLAYERS · TAKE TURNS', online: '▶ ONLINE · TWO PHONES' };
-const HINTS = { pong: 'Slide to move your paddle.', snake: 'Swipe to turn.', breakout: 'Slide to move, tap to launch.', rocks: 'Drag to fly. Firing is automatic.', flap: 'Tap to flap.', runner: 'Tap to jump, tap again in the air to double jump.', dodge: 'Slide to dodge.', shmup: 'Drag to fly. Firing is automatic.', catch: 'Slide to catch the round ones, avoid the spiky ones.', stack: 'Tap to drop the block.', tanks: 'Drag to drive, tap to fire. Shots bounce.', sumo: 'Drag to push, tap to dash. Knock the other out of the ring.', hockey: 'Drag your mallet.', duel: 'Tap the moment it says TAP!', tug: 'Tap as fast as you can.', c4: 'Tap a column.', ttt: 'Tap a square.', maze: 'Swipe to turn. Eat every dot.', simon: 'Watch, then repeat the pads.', tapper: 'Tap targets before they vanish.', ring: 'Hold the left or right side to orbit.', lander: 'Hold to thrust, drag left/right to tilt. Land softly on the pad.', golf: 'Drag back and release to putt.', jumper: 'Slide to steer.', racer: 'Slide to change lanes.', mines: 'Tap to dig. Switch to FLAG mode at the bottom.', merge: 'Swipe to slide tiles.', blocks: 'Drag sideways to move, tap to rotate, drag down to drop.', lights: 'Tap a light: it and its neighbours flip.', slide: 'Tap a tile next to the gap.' };
+const HINTS = { pong: 'Slide to move your paddle.', snake: 'Swipe to turn.', breakout: 'Slide to move, tap to launch.', rocks: 'Drag to fly. Firing is automatic.', flap: 'Tap to flap.', runner: 'Tap to jump, tap again in the air to double jump.', dodge: 'Slide to dodge.', shmup: 'Drag to fly. Firing is automatic.', catch: 'Catch the round ones, avoid the spiky ones.', stack: 'Tap to drop the block.', tanks: 'Drag to drive, tap to fire. Shots bounce.', sumo: 'Drag to push, tap to dash. Knock them out of the ring.', hockey: 'Drag your mallet. Score in the top goal.', duel: 'Tap the moment it says TAP!', tug: 'Tap as fast as you can.', c4: 'Tap a column.', ttt: 'Tap a square.', maze: 'Swipe to turn. Eat every dot.', simon: 'Watch, then repeat the pads.', tapper: 'Tap targets before they vanish.', ring: 'Hold the left or right side to orbit.', lander: 'Hold to thrust, drag sideways to tilt. Land softly on the pad.', golf: 'Drag back and release to putt.', jumper: 'Slide to steer.', racer: 'Slide to change lanes.', mines: 'Tap to dig. Switch to FLAG at the bottom.', merge: 'Swipe to slide tiles.', blocks: 'Drag sideways to move, tap to rotate, drag down to drop.', lights: 'Tap a light: it and its neighbours flip.', slide: 'Tap a tile next to the gap.', juggle: 'Slide to keep every ball in the air.', cross: 'Tap to hop forward, swipe to sidestep. Keep moving!', invaders: 'Slide to move. Firing is automatic.', defend: 'Tap the sky to blast missiles before they hit.', slice: 'Swipe through shapes. Never slice a bomb.', cave: 'Hold to rise, let go to fall.', moles: 'Tap the faces before they hide.', beat: 'Tap the lane as notes cross the line.', knife: 'Tap to throw. Don’t hit another knife.', stick: 'Hold to grow the bridge, let go to drop it.', pool: 'Drag back from anywhere and release to shoot.', reversi: 'Tap a dot to flip discs.', boxes: 'Tap between two dots to draw a line.', pairs: 'Tap two cards to find a pair.', volley: 'Slide to move, tap to jump.', artillery: 'Drag back and release to fire. Mind the wind.', barrage: 'Drag to aim, let go to fire every ball.', hoops: 'Drag down and release to throw.', goalie: 'Slide to block every shot.', math: 'Tap the right answer fast.' };
+const KEYHELP = 'Keys: P1 WASD + Space · P2 arrows + Enter · Esc pauses · gamepads work.';
 const palOf = c => { const n = Object.keys(PALS); return PALS[c.pal] || PALS[n[hash(c.name || c.e) % n.length]] };
+const today = () => new Date().toISOString().slice(0, 10);
+const favs = () => load('neon.fav', []), recent = () => load('neon.recent', []);
 
 let CAT = [], FIL = 'ALL';
-const CHIPS = ['ALL', 'VS', 'SOLO', 'ARCADE', 'PUZZLE', 'PARTY', 'SPORT', 'MIX', 'MINE'];
+const CHIPS = ['ALL', '★ FAVS', 'RECENT', 'VS', 'SOLO', 'ARCADE', 'PUZZLE', 'PARTY', 'SPORT', 'MIX', 'MINE'];
+const groupOf = c => c.mine ? 'mine' : c.mix ? 'mix' : c.e;
+const groupTitle = k => k == 'mine' ? 'My Games' : k == 'mix' ? 'Mashups' : E[k].t;
 function home() {
   CAT = catalog(); $('#sub').textContent = `${CAT.length} neon line games · make & mix your own`;
   $('#chips').innerHTML = CHIPS.map(c => `<button class="chip${c == FIL ? ' on' : ''}" data-c="${c}">${c}</button>`).join('');
@@ -91,53 +96,84 @@ function home() {
 }
 $('#chips').onclick = e => { const c = e.target.dataset.c; if (c) { FIL = c; home() } };
 $('#q').oninput = () => list();
+const daily = () => { const L = CAT.filter(c => !c.mine && !c.mix && vsOf(c) != 1); return L[hash(today()) % L.length] };
+function card(html, col, fn) { const d = document.createElement('button'); d.className = 'card'; d.style.setProperty('--c', col); d.innerHTML = html; d.onclick = fn; return d }
+const dots = pal => `<svg viewBox="0 0 100 20" width="100%" height="20">${pal.map((p, k) => `<circle cx="${10 + k * 20}" cy="10" r="6" fill="none" stroke="${p}" stroke-width="2" style="filter:drop-shadow(0 0 3px ${p})"/>`).join('')}</svg>`;
+const tags = c => { const v = vsOf(c); return v == 1 ? '<span class=tag>VS</span><span class=tag>ONLINE</span>' : v == 2 ? '<span class=tag>1P</span><span class=tag>VS</span>' : '<span class=tag>1P</span><span class=tag>2P TURNS</span>' };
 function list() {
   const q = $('#q').value.trim().toUpperCase(), L = $('#list'); L.innerHTML = '';
-  CAT.forEach((c, i) => {
-    const e = E[c.e], v = vsOf(c);
-    const ok = FIL == 'ALL' || (FIL == 'VS' && v) || (FIL == 'SOLO' && v != 1) || (FIL == 'MIX' && c.mix) || (FIL == 'MINE' && c.mine) || (!c.mix && e.c.toUpperCase() == FIL);
-    if (!ok || (q && !(c.name + ' ' + e.t).toUpperCase().includes(q))) return;
-    const pal = palOf(c), best = load('neon.best.' + c.name, 0), d = document.createElement('button');
-    d.className = 'card'; d.style.setProperty('--c', pal[0]);
-    d.innerHTML = `<svg viewBox="0 0 100 20" width="100%" height="20">${pal.map((p, k) => `<circle cx="${10 + k * 20}" cy="10" r="6" fill="none" stroke="${p}" stroke-width="2" style="filter:drop-shadow(0 0 3px ${p})"/>`).join('')}</svg>
-      <b>${esc(c.name)}</b><small>${esc(e.t)}${c.mix ? ' × ' + esc(E[c.mix].t) : ''}</small>
-      <small>${v == 1 ? '<span class=tag>VS</span><span class=tag>ONLINE</span>' : v == 2 ? '<span class=tag>1P</span><span class=tag>VS</span>' : '<span class=tag>1P</span><span class=tag>2P TURNS</span>'}${c.mine ? '<span class=tag>MINE</span>' : ''}${best ? ' ★' + best : ''}</small>`;
-    d.onclick = () => choose(c); L.append(d);
-  });
-  if (!L.children.length) L.innerHTML = '<p style="color:var(--dim)">Nothing here yet.</p>';
+  const match = c => !q || (c.name + ' ' + E[c.e].t + ' ' + groupTitle(groupOf(c))).toUpperCase().includes(q);
+  if (FIL == 'ALL' && !q) { const d = daily(), b = load('neon.daily.' + today(), 0); const el = card(`${dots(palOf(d))}<b>☀ DAILY CHALLENGE</b><small>${esc(d.name)}</small><small>${b ? 'today ★' + b : 'new every day'}</small>`, '#fff01f', () => openGroup(groupOf(d), d.name, 1)); el.style.gridColumn = '1/-1'; L.append(el) }
+  if (FIL == '★ FAVS' || FIL == 'RECENT') { // single versions
+    const names = FIL == 'RECENT' ? recent() : favs();
+    for (const n of names) { const c = CAT.find(x => x.name == n); if (c && match(c)) L.append(card(`${dots(palOf(c))}<b>${esc(c.name)}</b><small>${esc(groupTitle(groupOf(c)))}</small><small>${tags(c)}</small>`, palOf(c)[0], () => openGroup(groupOf(c), c.name))) }
+  } else {
+    const G = new Map();
+    for (const c of CAT) {
+      const e = E[c.e], v = vsOf(c), k = groupOf(c);
+      const ok = FIL == 'ALL' || (FIL == 'VS' && v) || (FIL == 'SOLO' && v != 1) || (FIL == 'MIX' && c.mix && !c.mine) || (FIL == 'MINE' && c.mine) || (!c.mix && !c.mine && e.c.toUpperCase() == FIL);
+      if (!ok || !match(c)) continue;
+      if (!G.has(k)) G.set(k, []); G.get(k).push(c);
+    }
+    for (const [k, vs] of G) {
+      const c = vs[0], best = Math.max(0, ...vs.map(x => load('neon.best.' + x.name, 0)));
+      L.append(card(`${dots(palOf(c))}<b>${esc(groupTitle(k).toUpperCase())}</b><small>${vs.length} version${vs.length > 1 ? 's' : ''}${k == 'mix' || k == 'mine' ? '' : ' · ' + esc(E[c.e].c)}</small><small>${k == 'mix' || k == 'mine' ? '' : tags(c)}${best ? ' ★' + best : ''}</small>`, palOf(c)[0], () => openGroup(k, q ? vs[0].name : null)));
+    }
+  }
+  if (!L.children.length) L.innerHTML = `<p style="color:var(--dim)">${FIL == 'MINE' ? 'Nothing yet. Tap + CREATE to make your own game.' : FIL == '★ FAVS' ? 'Tap ☆ on any game to keep it here.' : 'Nothing here yet.'}</p>`;
 }
-function choose(c) {
-  const m = modesOf(c), mods = (c.mods || []).map(k => MODS[k]).join(', ');
-  dlg(`<h2>${esc(c.name)}</h2><p>${esc(E[c.e].t)}${c.mix ? ' × ' + esc(E[c.mix].t) + ' · switches every 15 s' : ''}${mods ? '<br>' + esc(mods) : ''}</p>
-    <p class=help>${esc(HINTS[c.e] || '')}${c.mix ? ' ' + esc(HINTS[c.mix] || '') : ''}<br>Keys: P1 WASD + Space · P2 arrows + Enter · gamepads work.</p>`,
-    [...m.map(k => [MODE_LABEL[k], () => { close(); k == 'online' ? hostOnline(c) : startGame(c, k) }]),
+// one dialog per game: pick a version, a difficulty and a mode
+function openGroup(k, sel, isDaily) {
+  const vs = CAT.filter(c => groupOf(c) == k); if (!vs.length) return;
+  const c = vs.find(x => x.name == sel) || vs[0], m = modesOf(c), mods = (c.mods || []).map(x => MODS[x]).join(', '), fav = favs().includes(c.name), best = load('neon.best.' + c.name, 0);
+  const diffRow = m.includes('cpu') ? `<div class=vers>${['EASY', 'NORMAL', 'HARD'].map((d, i) => `<button class="chip${(SET.diff ?? 1) == i ? ' on' : ''}" data-d="${i}">${d}</button>`).join('')}</div>` : '';
+  dlg(`<h2>${esc(isDaily ? '☀ ' + c.name : groupTitle(k).toUpperCase())}</h2>
+    ${vs.length > 1 && !isDaily ? `<div class=vers>${vs.map(v => `<button class="chip${v === c ? ' on' : ''}" data-v="${esc(v.name)}">${esc(v.name)}</button>`).join('')}</div>` : ''}
+    <p>${esc(c.name)}${c.mix ? '<br>' + esc(E[c.e].t) + ' × ' + esc(E[c.mix].t) + ' · switches every 15 s' : ''}${mods ? '<br>' + esc(mods) : ''}${best ? '<br>BEST ★' + best : ''}</p>
+    <p class=help>${esc(HINTS[c.e] || '')}${c.mix ? ' ' + esc(HINTS[c.mix] || '') : ''}<br>${KEYHELP}</p>${diffRow}`,
+    [...m.map(x => [MODE_LABEL[x], () => { close(); x == 'online' ? hostOnline(c) : startGame(c, x, isDaily) }]),
+    [fav ? '★ FAVORITE' : '☆ ADD TO FAVORITES', () => { const f = favs().filter(n => n != c.name); if (!fav) f.unshift(c.name); save('neon.fav', f); openGroup(k, c.name, isDaily); if (FIL == '★ FAVS') list() }, '#fff01f'],
     c.mine ? ['✎ EDIT', () => creator(c), '#39ff14'] : ['✎ REMIX THIS', () => creator({ ...c, name: c.name + ' REMIX', id: 0 }), '#39ff14'],
-    ...(c.mine ? [['🗑 DELETE', () => { save('neon.my', load('neon.my', []).filter(x => x.id != c.id)); close(); home() }, '#ff2b4e']] : []),
+    ...(c.mine ? [['⇪ SHARE CODE', () => shareCode(c), '#00f0ff'], ['🗑 DELETE', () => confirmDlg(`Delete ${c.name}?`, () => { save('neon.my', load('neon.my', []).filter(x => x.id != c.id)); close(); home() }), '#ff2b4e']] : []),
     ['BACK', close, '#8a84b8']]);
+  for (const b of document.querySelectorAll('#box [data-v]')) b.onclick = () => openGroup(k, b.dataset.v);
+  for (const b of document.querySelectorAll('#box [data-d]')) b.onclick = () => { SET.diff = +b.dataset.d; save('neon.set', SET); openGroup(k, c.name, isDaily) };
+  const on = document.querySelector('#box .vers .on'); if (on) on.scrollIntoView({ block: 'nearest', inline: 'center' });
 }
+function confirmDlg(q, yes) { dlg(`<h2>SURE?</h2><p>${esc(q)}</p>`, [['YES', yes, '#ff2b4e'], ['NO', close, '#8a84b8']]) }
 
 // ---- running a game
 let R = null, PAUSED = 0, NET = null, last = 0, FR = 0;
-function startGame(c, mode) { R = { c, mode, res: [] }; ZONES = mode == 'local' && vsOf(c) ? 1 : 0; TCH.clear(); show('game'); newRound() }
+function startGame(c, mode, isDaily) {
+  R = { c, mode, res: [], daily: isDaily }; ZONES = mode == 'local' && vsOf(c) ? 1 : 0; TCH.clear(); show('game');
+  save('neon.recent', [c.name, ...recent().filter(n => n != c.name)].slice(0, 16)); save('neon.plays', load('neon.plays', 0) + 1);
+  newRound();
+}
 function newRound() {
   close(); const c = R.c, m = c.mods || [];
   PT = []; DL = []; SQ = []; PAUSED = 0; MIRROR = m.includes('mirror');
   Object.assign(VIEW, { ghost: m.includes('ghost'), drunk: m.includes('drunk'), flip: m.includes('flip') });
-  Object.assign(R, makeRun(c, R.mode == 'hot' ? 'solo' : R.mode), { done: 0 });
+  Object.assign(R, makeRun(c, R.mode == 'hot' ? 'solo' : R.mode, SET.diff ?? 1), { done: 0, hint: 3 });
   for (const I of P) Object.assign(I, NONE, { ap: 0, ar: 0 });
   send({ t: 'start', n: c.name, v: VIEW });
 }
-function hud() { const g = R.g; tx(g.hud || 'SCORE ' + g.score, W / 2, 14, 12, g.K.e); if (R.mode == 'hot') tx(`PLAYER ${R.res.length + 1}`, W / 2, 30, 11, R.res.length ? g.K.b : g.K.a) }
+function hud(dt) {
+  const g = R.g; tx(g.hud || 'SCORE ' + g.score, W / 2, 14, 12, g.K.e);
+  if (R.mode == 'hot') tx(`PLAYER ${R.res.length + 1}`, W / 2, 30, 11, R.res.length ? g.K.b : g.K.a);
+  if ((R.hint -= dt) > 0) { const h = (HINTS[R.c.e] || '') + (R.mode == 'local' ? ' · P2 plays on the top half' : ''); tx(h.length > 34 ? h.slice(0, h.lastIndexOf(' ', 34)) : h, W / 2, H - 50, 13, '#fff'); if (h.length > 34) tx(h.slice(h.lastIndexOf(' ', 34) + 1), W / 2, H - 32, 13, '#fff') }
+}
 function loop(t) {
   requestAnimationFrame(loop);
-  const dt = Math.min(.05, (t - last) / 1000 || 0); last = t;
+  const dt = clamp((t - last) / 1000 || 0, 0, .05); last = t;
   if (!R) return;
   VIEW.t += dt;
   if (R.mode == 'guest') { guestInput(); if (R.frame) render(R.frame) }
   else {
-    if (!PAUSED && !R.g.over) {
-      poll(); DL = []; R.tick(dt); parts(dt); hud();
-      if (R.g.over && !R.done) { R.done = 1; setTimeout(gameOver, 700) }
+    if (!PAUSED && !R.g.over && dt > 0) {
+      poll(); DL = [];
+      try { R.tick(dt); parts(dt); hud(dt) }
+      catch (e) { console.error(e); R.g.over = 1; R.g.msg = 'OOPS · GAME ERROR'; R.g.score = 0 } // never freeze the app on a game bug
+      if (R.g.over && !R.done) { R.done = 1; const g = R.g; setTimeout(() => { if (R && R.g === g) gameOver() }, 700) } // only for this round
     }
     render(DL);
     if (NET && NET.role == 'host') { if (++FR % 2 == 0) { send({ t: 'f', d: DL.map(rd), s: SQ }); SQ = [] } } else SQ = [];
@@ -155,13 +191,16 @@ function gameOver() {
     return dlg(`<h2>${a == b ? 'DRAW' : a > b ? 'PLAYER 1 WINS' : 'PLAYER 2 WINS'}</h2><p>P1 ${a} · P2 ${b}</p>`, [['↻ REMATCH', newRound], ['MENU', quit, '#8a84b8']]);
   }
   let sub = '';
-  if (!vsOf(c)) { const k = 'neon.best.' + c.name, b = load(k, 0); if (g.score > b) { save(k, g.score); sub = '★ NEW BEST!' } else sub = 'BEST ' + b }
+  if (!vsOf(c)) {
+    const k = 'neon.best.' + c.name, b = load(k, 0); if (g.score > b) { save(k, g.score); sub = '★ NEW BEST!' } else sub = 'BEST ' + b;
+    if (R.daily) { const dk = 'neon.daily.' + today(); if (g.score > load(dk, 0)) save(dk, g.score); sub += ' · TODAY ' + load(dk, 0) }
+  } else if (R.mode == 'cpu') { const k = 'neon.wins.' + c.name, w = load(k, [0, 0]); w[g.win == 0 ? 0 : 1]++; save(k, w); sub = `YOU ${w[0]} · CPU ${w[1]}` }
   send({ t: 'over', m: g.msg });
   dlg(`<h2>${esc(g.msg || 'GAME OVER')}</h2><p>${sub}</p>`, [['↻ PLAY AGAIN', newRound], ['MENU', quit, '#8a84b8']]);
 }
 function pause() {
-  if (!R || R.mode == 'guest' || R.g.over) return;
-  PAUSED = 1; dlg('<h2>PAUSED</h2>', [['▶ RESUME', () => { PAUSED = 0; close() }], ['↻ RESTART', () => { if (R.mode == 'hot') R.res = []; newRound() }], ['MENU', quit, '#8a84b8']]);
+  if (!R || R.mode == 'guest' || R.g.over || PAUSED) return;
+  PAUSED = 1; dlg(`<h2>PAUSED</h2><p class=help>${esc(HINTS[R.c.e] || '')}<br>${KEYHELP}</p>`, [['▶ RESUME', () => { PAUSED = 0; close() }], ['↻ RESTART', () => { if (R.mode == 'hot') R.res = []; newRound() }], ['MENU', quit, '#8a84b8']]);
 }
 function quit() {
   R = null; PAUSED = 0; REM = null; close();
@@ -169,12 +208,32 @@ function quit() {
   show('home'); home();
 }
 $('#bX').onclick = quit; $('#bP').onclick = pause;
-window.neonBack = () => { if (R) { quit(); return true } if (!$('#ov').hidden) { close(); return true } return false }; // Android back button
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause() });
+window.neonBack = () => { if (R && !$('#ov').hidden && !PAUSED) { quit(); return true } if (R && PAUSED) { quit(); return true } if (R) { pause(); return true } if (!$('#ov').hidden) { close(); return true } return false }; // Android back button
 
-// ---- creator
+// ---- creator and share codes
+function sanitize(x) { // anything from a share code is untrusted
+  if (!x || typeof x != 'object' || !E[x.e]) throw new Error('bad game');
+  const o = { id: Date.now(), name: String(x.name || 'SHARED GAME').slice(0, 28).toUpperCase(), e: x.e, pal: PALS[x.pal] ? x.pal : 'SYNTH', sp: clamp(+x.sp || 1, .5, 2), sz: clamp(+x.sz || 1, .5, 1.6), mods: Array.isArray(x.mods) ? x.mods.filter(m => MODS[m]).slice(0, 9) : [] };
+  const [a, b] = nrOf(x.e); if (Number.isInteger(x.n) && x.n >= a && x.n <= b) o.n = x.n;
+  if (E[x.mix] && x.mix != x.e) o.mix = x.mix;
+  if (x.e == 'snake' && x.tron) { o.tron = 1; o.vs = 1 }
+  return o;
+}
+const toCode = c => 'NEON1:' + btoa(unescape(encodeURIComponent(JSON.stringify(sanitize(c)))));
+const fromCode = s => sanitize(JSON.parse(decodeURIComponent(escape(atob(s.trim().replace(/^NEON1:/, ''))))));
+function shareCode(c) {
+  const code = toCode(c);
+  dlg(`<h2>SHARE</h2><p>Send this code to a friend. They tap + CREATE → IMPORT.</p><textarea id=sc readonly rows=4 style="width:100%;font-size:11px">${esc(code)}</textarea>`,
+    [['⧉ COPY', () => { try { navigator.clipboard.writeText(code) } catch (e) { } $('#sc').select(); try { document.execCommand('copy') } catch (e) { } $('#box p').textContent = 'Copied!' }, '#00f0ff'], ['DONE', close, '#8a84b8']]);
+}
+function importDlg() {
+  dlg('<h2>IMPORT</h2><p>Paste a NEON game code.</p><textarea id=ic rows=4 style="width:100%;font-size:11px" placeholder="NEON1:…"></textarea>',
+    [['✔ IMPORT', () => { try { const g = fromCode($('#ic').value); const L = load('neon.my', []); L.unshift(g); save('neon.my', L); FIL = 'MINE'; home(); openGroup('mine', g.name) } catch (e) { $('#box p').textContent = 'That code doesn’t work. Check it was copied fully.' } }, '#39ff14'], ['CANCEL', close, '#8a84b8']]);
+}
 function creator(base) {
   const c = { name: 'MY NEON GAME', e: 'pong', mix: '', pal: 'SYNTH', sp: 1, sz: 1, n: 0, mods: [], ...base };
-  const eng = Object.entries(E).map(([k, e]) => `<option value="${k}">${esc(e.t)}</option>`).join('');
+  const eng = Object.entries(E).sort((a, b) => a[1].t.localeCompare(b[1].t)).map(([k, e]) => `<option value="${k}">${esc(e.t)}</option>`).join('');
   dlg(`<h2>CREATE</h2><p>Pick a game, tune it, mix two together.</p><div class=form>
     <label>NAME<input id=cN maxlength=28></label>
     <label>GAME<select id=cE>${eng}</select></label>
@@ -184,7 +243,7 @@ function creator(base) {
     <label>SIZE <output id=oZ></output><input id=cZ type=range min=.5 max=1.6 step=.1></label>
     <label>AMOUNT · balls, enemies, board size or difficulty<select id=cA></select></label>
     <div class=mods>${Object.entries(MODS).map(([k, v]) => `<label><input type=checkbox value=${k}>${esc(v)}</label>`).join('')}</div></div>`,
-    [['🎲 RANDOMIZE', () => fill(randomGame()), '#fff01f'], ['✔ SAVE & PLAY', () => { const n = read(); const L = load('neon.my', []).filter(x => x.id != n.id); L.unshift(n); save('neon.my', L); home(); choose({ ...n, mine: 1 }) }, '#39ff14'], ['CANCEL', close, '#8a84b8']]);
+    [['🎲 RANDOMIZE', () => fill(randomGame()), '#fff01f'], ['✔ SAVE & PLAY', () => { const n = read(); const L = load('neon.my', []).filter(x => x.id != n.id); L.unshift(n); save('neon.my', L); home(); openGroup('mine', n.name) }, '#39ff14'], ['📋 IMPORT A CODE', importDlg, '#00f0ff'], ['CANCEL', close, '#8a84b8']]);
   const amt = (e, n) => { const [a, b] = nrOf(e); $('#cA').innerHTML = '<option value=0>default</option>' + Array.from({ length: b - a + 1 }, (_, k) => `<option>${a + k}</option>`).join(''); $('#cA').value = n >= a && n <= b ? n : 0 };
   const sync = () => { $('#oS').textContent = '×' + $('#cS').value; $('#oZ').textContent = '×' + $('#cZ').value };
   function fill(x) { $('#cN').value = x.name; $('#cE').value = x.e; $('#cM').value = x.mix || ''; $('#cP').value = x.pal || 'SYNTH'; $('#cS').value = x.sp || 1; $('#cZ').value = x.sz || 1; amt(x.e, x.n); for (const b of document.querySelectorAll('.mods input')) b.checked = (x.mods || []).includes(b.value); sync() }
@@ -198,7 +257,8 @@ function creator(base) {
   fill(c);
 }
 $('#bCreate').onclick = () => creator();
-$('#bMash').onclick = () => { const c = randomGame(); choose(c) };
+$('#bMash').onclick = () => startMash(randomGame());
+function startMash(c) { dlg(`<h2>⚡ ${esc(c.name)}</h2><p>A random new game. Like it? Save it as yours.</p><p class=help>${esc(HINTS[c.e] || '')} ${c.mix ? esc(HINTS[c.mix] || '') : ''}</p>`, [['▶ PLAY', () => { close(); startGame(c, modesOf(c)[0]) }], ['✔ SAVE', () => { const L = load('neon.my', []); L.unshift({ ...c, id: Date.now() }); save('neon.my', L); home(); openGroup('mine', c.name) }, '#39ff14'], ['🎲 ANOTHER', () => startMash(randomGame()), '#fff01f'], ['BACK', close, '#8a84b8']]) }
 
 // ---- online: host runs the game, the guest sends input and draws the host's frames
 const PEERJS = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
@@ -248,14 +308,37 @@ function guestInput() { const n = readLocal(0, true), s = JSON.stringify(n); if 
 function lost() { if (NET) dlg('<h2>DISCONNECTED</h2><p>The other phone left.</p>', [['MENU', quit]]) }
 $('#bOnline').onclick = onlineMenu;
 
-// ---- settings, install, offline cache
+// ---- music: a quiet synth arpeggio while a game runs
+const VERSION = '2.0';
+let mStep = 0;
+setInterval(() => {
+  if (!SET.mus || !R || PAUSED || R.mode == 'guest' || (R.g && R.g.over) || document.hidden) return;
+  const root = [110, 87.3, 130.8, 98][(mStep >> 4) % 4], k = mStep++ % 16;
+  if (k % 4 == 0) play(root, .25, 'triangle', .035);
+  if (k % 2 == 1) play(root * [2, 3, 4, 3, 5, 4, 3, 2][(k >> 1) % 8], .1, 'square', .008);
+}, 140);
+
+// ---- settings, about, install, offline cache
 let installEv = null;
 addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEv = e });
 function settings() {
   const t = (k, l) => [`${l}: ${SET[k] ? 'ON' : 'OFF'}`, () => { SET[k] ^= 1; save('neon.set', SET); settings() }];
-  dlg(`<h2>SETTINGS</h2><p class=help>Everything runs offline. Online play uses the free open-source PeerJS service to connect two phones directly.<br><br>Keys: P1 WASD + Space · P2 arrows + Enter · Esc pauses · gamepads work.</p>`,
-    [t('snd', '♪ SOUND'), t('glow', '✦ GLOW (turn off if slow)'), t('vib', '≋ VIBRATION'), ...(installEv ? [['⬇ INSTALL APP', () => installEv.prompt(), '#39ff14']] : []), ['DONE', close, '#8a84b8']]);
+  const mine = load('neon.my', []).length, bests = Object.keys(localStorage).filter(k => k.startsWith('neon.best.')).length;
+  dlg(`<h2>SETTINGS</h2><p class=help>Games played: ${load('neon.plays', 0)} · high scores: ${bests} · your games: ${mine}<br>CPU level: ${['EASY', 'NORMAL', 'HARD'][SET.diff ?? 1]} (change it on any VS game)</p>`,
+    [t('snd', '♪ SOUND'), t('mus', '♫ MUSIC'), t('glow', '✦ GLOW (turn off if slow)'), t('vib', '≋ VIBRATION'),
+    ...(installEv ? [['⬇ INSTALL APP', () => installEv.prompt(), '#39ff14']] : []),
+    ['ⓘ HOW TO PLAY', welcome, '#00f0ff'], ['🔒 ABOUT & PRIVACY', about, '#00f0ff'],
+    ['🗑 RESET ALL DATA', () => confirmDlg('Delete all scores, favorites and your games on this device?', () => { for (const k of Object.keys(localStorage)) if (k.startsWith('neon.')) localStorage.removeItem(k); location.reload() }), '#ff2b4e'],
+    ['DONE', close, '#8a84b8']]);
+}
+function about() {
+  dlg(`<h2>NEON ${VERSION}</h2><p class=help>${CAT.length} neon line games, a game creator and a mixer.<br><br><b>Privacy.</b> No accounts, no ads, no tracking. Scores, favorites and the games you make stay on this device. Online mode connects two phones through the free open-source PeerJS service; only game frames and touches pass between them, and nothing is stored.<br><br><b>Credits.</b> Made with Claude Code. Online play uses PeerJS (MIT license). All games are original code; no outside art or music.</p>`, [['BACK', settings, '#8a84b8']]);
+}
+function welcome() {
+  save('neon.seen', 1);
+  dlg(`<h2>WELCOME TO NEON</h2><p class=help>• Tap a game, pick a <b>version</b> and how to play: alone, vs the CPU, two players on one phone, or online with two phones.<br>• <b>+ CREATE</b> makes your own game: mix two games, change speed, size, colors and add crazy effects. Share it with a code.<br>• <b>⚡ MASHUP</b> invents a random game.<br>• Try the <b>DAILY CHALLENGE</b> every day.<br>• Everything works offline.<br><br>${KEYHELP}</p>`, [['LET’S PLAY', close, '#39ff14']]);
 }
 $('#bSet').onclick = settings;
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && location.hostname != 'neon.local') navigator.serviceWorker.register('sw.js').catch(() => { });
 home(); requestAnimationFrame(loop);
+if (!load('neon.seen', 0)) welcome();

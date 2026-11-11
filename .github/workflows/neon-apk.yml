@@ -23,7 +23,7 @@ jobs:
       - name: Build APK
         env:
           VERSION_CODE: ${{ github.run_number }}
-          VERSION_NAME: 1.0.${{ github.run_number }}
+          VERSION_NAME: 2.0.${{ github.run_number }}
         run: bash neon/android/build.sh
       - uses: actions/upload-artifact@v4
         with:
@@ -37,4 +37,4 @@ jobs:
           gh release delete neon-latest --yes --cleanup-tag || true
           gh release create neon-latest neon/android/Neon.apk \
             --target "${{ github.sha }}" --prerelease --title "NEON (test build ${{ github.run_number }})" \
-            --notes "NEON: 100+ neon line games for Android. Make and mix your own. Plays offline; ONLINE mode connects two phones."
+            --notes "NEON: 300+ neon line games for Android. Make and mix your own. Plays offline; ONLINE mode connects two phones."

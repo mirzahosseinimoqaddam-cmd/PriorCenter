@@ -1,5 +1,5 @@
 // Offline cache: serve app files from cache, refresh them in the background when online.
-const C = 'neon-v1', FILES = ['./', 'index.html', 'engine.js', 'games1.js', 'games2.js', 'games3.js', 'shell.js', 'manifest.webmanifest', 'icon.png'];
+const C = 'neon-v2', FILES = ['./', 'index.html', 'engine.js', 'games1.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'shell.js', 'manifest.webmanifest', 'icon.png'];
 self.addEventListener('install', e => e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', e => {

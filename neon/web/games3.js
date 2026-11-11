@@ -171,8 +171,11 @@ E.golf = {
         }
       }
       const f = Math.pow(g.sp < 1 ? .55 : .3, dt); b.vx *= f; b.vy *= f;
-      b.x += b.vx * dt; if (walls.some(w => inRect(b.x, b.y, w) || hyp(clamp(b.x, w.x, w.x + w.w) - b.x, clamp(b.y, w.y, w.y + w.h) - b.y) < 8)) { b.x -= b.vx * dt; b.vx = -b.vx * .8; sfx(600, .03) }
-      b.y += b.vy * dt; if (walls.some(w => inRect(b.x, b.y, w) || hyp(clamp(b.x, w.x, w.x + w.w) - b.x, clamp(b.y, w.y, w.y + w.h) - b.y) < 8)) { b.y -= b.vy * dt; b.vy = -b.vy * .8; sfx(600, .03) }
+      const hitW = () => walls.some(w => hyp(clamp(b.x, w.x, w.x + w.w) - b.x, clamp(b.y, w.y, w.y + w.h) - b.y) < 8);
+      for (let k = 0, h = dt / 6; k < 6; k++) { // small steps so fast putts can't pass through walls
+        b.x += b.vx * h; if (hitW()) { b.x -= b.vx * h; b.vx = -b.vx * .8; sfx(600, .03) }
+        b.y += b.vy * h; if (hitW()) { b.y -= b.vy * h; b.vy = -b.vy * .8; sfx(600, .03) }
+      }
       if (!sink && hyp(b.x - cup.x, b.y - cup.y) < cr && hyp(b.vx, b.vy) < 420) { sink = 1; g.score += Math.max(0, 6 - strokes) * 100; b.vx = b.vy = 0; b.x = cup.x; b.y = cup.y; sfx(1000, .4, 'triangle'); boom(cup.x, cup.y, K.d, 40) }
       for (const w of walls) rc(w.x, w.y, w.w, w.h, K.e, 1);
       ci(cup.x, cup.y, cr, K.d, 2); ln(cup.x, cup.y, cup.x, cup.y - 40, K.d, 2); pg([cup.x, cup.y - 40, cup.x + 20, cup.y - 33, cup.x, cup.y - 26], K.c, 1, 2);

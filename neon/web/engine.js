@@ -22,7 +22,7 @@ const PALS = {
   SUNSET: ['#ff9f1a', '#ff2bd6', '#00f0ff', '#fff01f', '#b026ff'],
 };
 const MODS = { turbo: 'TURBO speed', slowmo: 'SLOW-MO', mirror: 'MIRROR controls', drunk: 'DRUNK screen', flip: 'UPSIDE DOWN', ghost: 'GHOST trails', rainbow: 'RAINBOW colors', tiny: 'TINY things', giant: 'GIANT things' };
-const SET = Object.assign({ snd: 1, glow: 1, vib: 1 }, load('neon.set', {}));
+const SET = Object.assign({ snd: 1, mus: 0, glow: 1, vib: 1, diff: 1 }, load('neon.set', {}));
 
 let DL = [], SQ = [], PT = [];
 const ln = (a, b, c, d, col, w = 2) => DL.push([0, a, b, c, d, col, w]);
@@ -71,9 +71,10 @@ const turnIn = (g, t) => g.net ? P[t] : (P[0].ap || P[0].dp || P[0].ar) ? P[0] :
 const E = {}; // game engines: E.key = {t: title, c: category, vs: 0 solo | 1 versus | 2 both, n: default amount, v: [[name, params]], f: g => tick(dt)}
 const vsOf = c => c.mix ? 0 : (c.vs ?? E[c.e].vs);
 function modesOf(c) { const v = vsOf(c); return v == 1 ? ['cpu', 'local', 'online'] : v == 2 ? ['solo', 'cpu', 'local', 'online'] : ['solo', 'hot'] }
-function mkG(c, e, mode) {
+function mkG(c, e, mode, diff = 1) {
   const names = Object.keys(PALS), pal = PALS[c.pal] || PALS[names[hash(c.name || e) % names.length]], m = c.mods || [];
   const g = { sp: 1, sz: 1, n: E[e].n || 1, ...c, e, pal, score: 0, over: 0, msg: '', hud: '', net: mode == 'online' };
+  g.diff = diff; g.ai = [.7, 1, 1.3][diff] || 1; // bot strength
   g.K = { a: pal[0], b: pal[1], c: pal[2], d: pal[3], e: pal[4] };
   g.sz *= m.includes('tiny') ? .7 : m.includes('giant') ? 1.35 : 1;
   const v = c.mix ? E[e].vs : vsOf(c);
@@ -82,11 +83,11 @@ function mkG(c, e, mode) {
   return g;
 }
 // builds {g, tick} for a catalog entry; a mix swaps between two games every 15 s and adds their scores
-function makeRun(c, mode) {
+function makeRun(c, mode, diff = 1) {
   const m = c.mods || [], tm = m.includes('turbo') ? 1.4 : m.includes('slowmo') ? .7 : 1, rb = m.includes('rainbow');
-  const wrap = (gs, f) => { let t = 0; return dt => { t += dt; if (rb) for (const g of gs) { const o = t * 1.5 | 0; 'abcde'.split('').forEach((k, i) => g.K[k] = g.pal[(i + o) % 5]) } f(dt * tm) } };
-  if (!c.mix) { const g = mkG(c, c.e, mode); return { g, tick: wrap([g], E[c.e].f(g)) } }
-  const a = mkG(c, c.e, 'solo'), b = mkG({ ...c, pal: c.pal2 || c.pal }, c.mix, 'solo'), ta = E[c.e].f(a), tb = E[c.mix].f(b), SW = 15;
+  const wrap = (gs, f) => { let t = 0; return dt => { t += dt; if (rb) for (const g of gs) { const o = t * 1.5 | 0; 'abcde'.split('').forEach((k, i) => g.K[k] = g.pal[(i + o) % 5]) } f(clamp(dt, .001, .05) * tm) } }; // a 0 or huge frame time must never reach a game
+  if (!c.mix) { const g = mkG(c, c.e, mode, diff); return { g, tick: wrap([g], E[c.e].f(g)) } }
+  const a = mkG(c, c.e, 'solo', diff), b = mkG({ ...c, pal: c.pal2 || c.pal }, c.mix, 'solo', diff), ta = E[c.e].f(a), tb = E[c.mix].f(b), SW = 15;
   const g = { ...a, score: 0, over: 0 }; let cur = 0, t = 0;
   return {
     g, tick: wrap([a, b], dt => {
@@ -98,19 +99,26 @@ function makeRun(c, mode) {
     })
   };
 }
+const CALM = ['c4', 'ttt', 'reversi', 'boxes', 'pairs', 'mines', 'merge', 'lights', 'slide', 'artillery', 'duel', 'tug', 'simon']; // turn-based: speed versions make no sense
 function catalog() {
   const L = [];
-  for (const [k, e] of Object.entries(E)) for (const [name, p] of e.v) L.push({ name, e: k, ...p });
+  for (const [k, e] of Object.entries(E)) {
+    for (const [name, p] of e.v) L.push({ name, e: k, ...p });
+    if (!CALM.includes(k)) { const b = e.v[0][0]; L.push({ name: b + ' HARDCORE', e: k, ...e.v[0][1], sp: 1.35, pal: 'BLOOD' }, { name: b + ' ZEN', e: k, ...e.v[0][1], sp: .75, pal: 'MINT' }) }
+  }
   return L.concat(MIXES, load('neon.my', []).map(c => ({ ...c, mine: 1 })));
 }
 const MIXES = [
   ['SNAKE × FLAP', 'snake', 'flap'], ['PONG × BREAKOUT', 'pong', 'breakout'], ['RUNNER × DODGE', 'runner', 'dodge'],
   ['ROCKS × SHMUP', 'rocks', 'shmup'], ['STACK × JUMPER', 'stack', 'jumper'], ['RACER × CATCH', 'racer', 'catch'],
   ['RING × TAPPER', 'ring', 'tapper'], ['MAZE × LANDER', 'maze', 'lander'], ['BLOCKS × MERGE', 'blocks', 'merge'], ['HOCKEY × SUMO', 'hockey', 'sumo'],
+  ['JUGGLE × HOOPS', 'juggle', 'hoops'], ['INVADERS × DEFENDER', 'invaders', 'defend'], ['CAVE × FLAP', 'cave', 'flap'], ['SLICE × TARGETS', 'slice', 'tapper'],
+  ['KNIFE × STACK', 'knife', 'stack'], ['BEAT × WHACK', 'beat', 'moles'], ['CROSSING × RACER', 'cross', 'racer'], ['BRIDGE × JUMPER', 'stick', 'jumper'],
+  ['GOALIE × CATCH', 'goalie', 'catch'], ['MATH × ECHO', 'math', 'simon'], ['BARRAGE × BREAKOUT', 'barrage', 'breakout'], ['PAIRS × LIGHTS OUT', 'pairs', 'lights'],
 ].map(([name, e, mix]) => ({ name, e, mix }));
 
 // allowed AMOUNT range per engine (board sizes, difficulty levels…); default 1..6
-const NR = { ttt: [1, 3], c4: [1, 3], mines: [1, 3], merge: [3, 6], lights: [3, 7], slide: [3, 5], ring: [3, 10], racer: [2, 6], simon: [1, 2], tug: [1, 3], duel: [1, 3], snake: [1, 9] };
+const NR = { ttt: [1, 3], c4: [1, 3], mines: [1, 3], merge: [3, 6], lights: [3, 7], slide: [3, 5], ring: [3, 10], racer: [2, 6], simon: [1, 2], tug: [1, 3], duel: [1, 3], snake: [1, 9], moles: [3, 5], pairs: [1, 3], boxes: [4, 6], pool: [1, 2], volley: [1, 2], knife: [1, 4], beat: [1, 3], cave: [1, 2], math: [1, 3], reversi: [1, 1], artillery: [1, 3] };
 const nrOf = e => NR[e] || [1, 6];
 function randomGame() {
   const ks = Object.keys(E), e = pick(ks), mix = rnd() < .5 ? pick(ks.filter(k => k != e && !E[k].vs)) : '', [a, b] = nrOf(e);
