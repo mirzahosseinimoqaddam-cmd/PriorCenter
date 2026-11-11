@@ -58,6 +58,17 @@ python test_parity.py demo.bin
 
 ## Data and licences
 
+| Source | Licence | Used for |
+|---|---|---|
+| [Angais/pixel-art-atlas-1.4m](https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m) | see its dataset card (checked in notebook step 1) | main set |
+| [ptx0/free-to-use-pixelart](https://huggingface.co/datasets/ptx0/free-to-use-pixelart) | MIT (PixilArt free-to-use) | more art, captioned by BLIP |
+| [jainr3/diffusiondb-pixelart](https://huggingface.co/datasets/jainr3/diffusiondb-pixelart) | CC0 | AI pixel-art generator samples (only true pixel grids are kept) |
+| [tstamborski/pixelart-icons](https://github.com/tstamborski/pixelart-icons) | CC0 | 16×16 icons |
+| [famfamfam Silk icons](http://www.famfamfam.com/lab/icons/silk/) ([GitHub copy](https://github.com/markjames/famfamfam-silk-icons)) | CC-BY 2.5, credit Mark James | 16×16 icons |
+
+**Halal filter:** `train.py` leaves out every image whose caption contains a word from `NOT_HALAL` in `prepare.py`
+(alcohol, pork, gambling, nudity, drugs, idols), plus every image with no caption. The model never sees those words, so prompts with them are ignored.
+
 `prepare.py` takes any number of sources: `--hf <dataset>` (repeatable) and `--folder <dir>` (captions from a `.txt` next to each image, or the file name).
 Before adding a source, check its licence. Prefer CC0 / CC-BY sets (for example OpenGameArt packs), and leave out sprites ripped from commercial games.
 

@@ -18,6 +18,7 @@ import torch
 import torch.nn.functional as F
 
 from model import Config, PixelModel, count_params
+from prepare import is_halal
 
 
 def build_vocab(caps, size, min_count=2):
@@ -72,6 +73,10 @@ def main():
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     tokens = torch.from_numpy(np.load(os.path.join(args.data, "tokens.npy")).astype(np.int64))
     caps = json.load(open(os.path.join(args.data, "captions.json")))
+    # halal filter; images without a caption are dropped too, since nothing says what they show
+    keep = [i for i, c in enumerate(caps) if c and is_halal(c)]
+    print(f"halal filter: training on {len(keep)} of {len(caps)} images")
+    tokens, caps = tokens[keep], [caps[i] for i in keep]
     palette = json.load(open(os.path.join(args.data, "palette.json")))
     info = json.load(open(os.path.join(args.data, "stats.json")))
     ck_path = os.path.join(args.out, "ckpt.pt")

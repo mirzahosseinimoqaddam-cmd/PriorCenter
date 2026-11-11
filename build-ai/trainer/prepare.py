@@ -71,7 +71,24 @@ def clean_caption(t):
     t = str(t).lower().replace("_", " ").replace("-", " ")
     t = re.sub(r"\.(png|gif|bmp|jpg|jpeg|webp)$", "", t)
     t = re.sub(r"[^a-z0-9 ,]+", " ", t)
+    t = re.sub(r"(?<=[a-z])(16|24|32|48|64)\b|\bv\d+\b|\b\d+x\d+\b", " ", t)  # icon names: apple32-v2, coin_16x16
     return re.sub(r"\s+", " ", t).strip(" ,")
+
+
+# Images whose caption has any of these words are left out of training (halal filter).
+# Add words here; matching is per whole word.
+NOT_HALAL = set("""
+alcohol beer beers wine wines vodka whisky whiskey liquor cocktail champagne brandy martini booze tequila gin rum
+pork bacon ham pig pigs swine
+casino gamble gambling poker roulette lottery jackpot bet betting blackjack
+nude naked sexy sex nsfw porn lingerie bikini erotic boobs breasts underwear
+cigarette cigarettes cigar smoking weed marijuana cannabis cocaine heroin drug drugs bong
+idol idols
+""".split())
+
+
+def is_halal(caption):
+    return not NOT_HALAL & set(re.findall(r"[a-z0-9]+", caption.lower()))
 
 
 def words(t):
@@ -186,28 +203,31 @@ def main():
     seen, imgs, caps = set(), [], []
     stats = Counter()
     for name, it in sources:
-        for img, cap in it:
-            stats["seen"] += 1
-            try:
-                g = to_grid(img, args.size)
-            except Exception:
-                stats["unreadable"] += 1
-                continue
-            if g is None:
-                stats["wrong_size_or_empty"] += 1
-                continue
-            h = hashlib.md5(g.tobytes()).digest()
-            if h in seen:
-                stats["duplicate"] += 1
-                continue
-            seen.add(h)
-            imgs.append(g)
-            caps.append(clean_caption(cap))
-            stats["kept"] += 1
-            if stats["seen"] % 20000 == 0:
-                print(dict(stats), flush=True)
-            if args.limit and stats["kept"] >= args.limit:
-                break
+        try:  # one broken or gated source must not stop a long run
+            for img, cap in it:
+                stats["seen"] += 1
+                try:
+                    g = to_grid(img, args.size)
+                except Exception:
+                    stats["unreadable"] += 1
+                    continue
+                if g is None:
+                    stats["wrong_size_or_empty"] += 1
+                    continue
+                h = hashlib.md5(g.tobytes()).digest()
+                if h in seen:
+                    stats["duplicate"] += 1
+                    continue
+                seen.add(h)
+                imgs.append(g)
+                caps.append(clean_caption(cap))
+                stats["kept"] += 1
+                if stats["seen"] % 20000 == 0:
+                    print(dict(stats), flush=True)
+                if args.limit and stats["kept"] >= args.limit:
+                    break
+        except Exception as e:
+            print(f"skipped the rest of {name}: {e}", flush=True)
         if args.limit and stats["kept"] >= args.limit:
             break
     if not imgs:
