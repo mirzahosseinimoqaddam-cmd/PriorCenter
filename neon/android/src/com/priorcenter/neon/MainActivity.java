@@ -1,6 +1,13 @@
 package com.priorcenter.neon;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.webkit.JavascriptInterface;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,7 +22,7 @@ import java.io.IOException;
 
 /**
  * Full-screen WebView around the bundled NEON page, served from inside the app at https://neon.local/.
- * Requests to other hosts (only the online mode's PeerJS) go to the network as usual.
+ * Nothing ever goes online: any other host is refused.
  */
 public class MainActivity extends Activity {
     private static final String HOST = "neon.local";
@@ -44,7 +51,7 @@ public class MainActivity extends Activity {
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
-                if (!HOST.equals(u.getHost())) return null;
+                if (!HOST.equals(u.getHost())) return new WebResourceResponse("text/plain", "utf-8", 404, "Offline", null, null);
                 String path = u.getPath() == null || u.getPath().equals("/") ? "index.html" : u.getPath().substring(1);
                 if (path.contains("..")) return null;
                 try {
@@ -55,7 +62,19 @@ public class MainActivity extends Activity {
                 }
             }
         });
+        // the page hands over its reminder plan; Android shows it even when the app is closed
+        web.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void plan(String json) { Reminders.save(MainActivity.this, json); }
+
+            @JavascriptInterface
+            public void askPermission() {
+                if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
+                    requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }, "NeonNative");
         setContentView(web);
+        immersive();
         if (state != null) web.restoreState(state);
         else web.loadUrl("https://" + HOST + "/index.html");
     }
@@ -72,7 +91,18 @@ public class MainActivity extends Activity {
     protected void onPause() { super.onPause(); web.onPause(); }
 
     @Override
-    protected void onResume() { super.onResume(); web.onResume(); }
+    protected void onResume() { super.onResume(); web.onResume(); immersive(); }
+
+    /** Full screen for games: system bars hide and come back with a swipe. */
+    private void immersive() {
+        if (Build.VERSION.SDK_INT >= 30) {
+            getWindow().setDecorFitsSystemWindows(false);
+            WindowInsetsController c = getWindow().getInsetsController();
+            if (c != null) { c.hide(WindowInsets.Type.systemBars()); c.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE); }
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        }
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle out) {

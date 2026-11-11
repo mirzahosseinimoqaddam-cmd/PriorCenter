@@ -71,9 +71,9 @@ E.cross = {
 E.invaders = {
   t: 'Invaders', c: 'arcade', vs: 0, n: 1, v: [['NEON INVADERS', {}], ['INVADERS ARMADA', { n: 3 }], ['INVADERS FAST', { sp: 1.5, pal: 'TOXIC' }], ['INVADERS GHOST', { mods: ['ghost'], pal: 'ICE' }], ['INVADERS RAINBOW', { mods: ['rainbow'] }]],
   f(g) {
-    const K = g.K, cols = [K.a, K.b, K.c, K.d, K.e]; let x = W / 2, en, dir = 1, bul = null, eb = [], lives = 3, wave = 0, shield, ft = 0, inv = 0, T = 0;
+    const K = g.K, cols = [K.a, K.b, K.c, K.d, K.e]; let x = W / 2, en, dir = 1, bul = null, eb = [], lives = 3, wave = g.lv0 || 0, shield, ft = 0, inv = 0, T = 0;
     const lay = () => {
-      en = []; const R = Math.min(7, 3 + g.n + (wave >> 1));
+      g.level = wave; en = []; const R = Math.min(7, 3 + g.n + (wave >> 1));
       for (let r = 0; r < R; r++)for (let c = 0; c < 7; c++)en.push({ x: 40 + c * 40, y: 80 + r * 32 + Math.min(wave, 5) * 12, r });
       shield = []; for (const sx of [50, 150, 250]) for (let i = 0; i < 6; i++)for (let j = 0; j < 3; j++)shield.push({ x: sx + i * 10, y: 500 + j * 10 });
     };
@@ -253,8 +253,8 @@ E.beat = {
 E.knife = {
   t: 'Knife Throw', c: 'arcade', vs: 0, n: 1, v: [['NEON KNIVES', {}], ['KNIVES CRAZY SPIN', { sp: 1.4, pal: 'BLOOD' }], ['KNIVES CROWDED', { n: 2, pal: 'TOXIC' }], ['KNIVES DRUNK', { mods: ['drunk'] }], ['KNIVES RAINBOW', { mods: ['rainbow'] }]],
   f(g) {
-    const K = g.K, cx = W / 2, cy = 220, R = 70; let rot = 0, st, fly = null, lvl = 0, need, T = 0, wait = 0;
-    const lay = () => { st = []; for (let i = 0; i < Math.min(5, lvl + g.n - 1); i++) st.push(rnd(TAU)); need = 5 + lvl; T = 0 };
+    const K = g.K, cx = W / 2, cy = 220, R = 70; let rot = 0, st, fly = null, lvl = g.lv0 || 0, need, T = 0, wait = 0;
+    const lay = () => { g.level = lvl; st = []; for (let i = 0; i < Math.min(5, lvl + g.n - 1); i++) st.push(rnd(TAU)); need = 5 + lvl; T = 0 };
     lay();
     return dt => {
       T += dt; const sp = (1.4 + lvl * .25) * g.sp * (lvl % 3 == 2 ? sin(T * 1.3) * 1.6 : lvl % 3 == 1 ? (T % 4 < 2 ? 1 : -1.3) : 1);

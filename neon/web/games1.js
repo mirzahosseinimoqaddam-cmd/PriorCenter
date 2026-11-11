@@ -107,9 +107,10 @@ E.snake = {
 E.breakout = {
   t: 'Breakout', c: 'arcade', vs: 0, n: 1, v: [['NEON BREAKOUT', {}], ['BRICK WALL', { n: 4 }], ['BREAKOUT TURBO', { sp: 1.4 }], ['WIDE PADDLE', { sz: 1.5, pal: 'MINT' }], ['FLIP BREAKOUT', { mods: ['flip'] }]],
   f(g) {
-    const K = g.K, pw = 80 * g.sz; let px = W / 2, lives = 3, lvl = 0, ball, bricks, st = 0;
+    const K = g.K, pw = 80 * g.sz; let px = W / 2, lives = 3, lvl = g.lv0 || 0, ball, bricks, st = 0;
     const cols = [K.a, K.b, K.c, K.d, K.e];
-    const lay = () => { bricks = []; for (let r = 0; r < Math.min(12, 3 + g.n + lvl); r++)for (let c = 0; c < 8; c++)bricks.push({ x: 8 + c * 43.5, y: 70 + r * 22, w: 40, h: 16, hp: r < lvl ? 2 : 1, c: cols[r % 5] }) };
+    const PAT = [() => 1, (r, c) => abs(c - 3.5) <= r * .7 + .5, (r, c) => (r + c) % 2, (r, c) => abs(c - 3.5) + abs(r - 4) < 5, (r, c) => c % 3 != 2, (r, c) => r % 2 || c % 2]; // a new brick layout each level
+    const lay = () => { g.level = lvl; bricks = []; for (let r = 0; r < Math.min(12, 3 + g.n + lvl); r++)for (let c = 0; c < 8; c++)if (PAT[lvl % PAT.length](r, c)) bricks.push({ x: 8 + c * 43.5, y: 70 + r * 22, w: 40, h: 16, hp: r < lvl ? 2 : 1, c: cols[r % 5] }) };
     const reset = () => { ball = { x: px, y: 580, vx: 0, vy: 0, stuck: 1 }; st = 0 };
     lay(); reset();
     return dt => {
@@ -141,9 +142,9 @@ E.breakout = {
 E.rocks = {
   t: 'Rocks', c: 'arcade', vs: 0, n: 1, v: [['NEON ROCKS', {}], ['ROCK STORM', { n: 3 }], ['ROCKS TURBO', { sp: 1.5 }], ['GIANT ROCKS', { mods: ['giant'], pal: 'INFERNO' }]],
   f(g) {
-    const K = g.K, s = { x: W / 2, y: H / 2, vx: 0, vy: 0, a: -PI / 2, inv: 2 }; let rocks = [], bul = [], lives = 3, wave = 0, ft = 0;
+    const K = g.K, s = { x: W / 2, y: H / 2, vx: 0, vy: 0, a: -PI / 2, inv: 2 }; let rocks = [], bul = [], lives = 3, wave = g.lv0 || 0, ft = 0;
     const rock = (x, y, r) => ({ x, y, r, vx: rnd(-60, 60) * g.sp, vy: rnd(-60, 60) * g.sp, a: 0, va: rnd(-1, 1), sh: Array.from({ length: 9 }, () => rnd(.75, 1.15)) });
-    const next = () => { wave++; for (let i = 0; i < 2 + wave + g.n; i++) { const e = rnd(1) < .5; rocks.push(rock(e ? 0 : rnd(W), e ? rnd(H) : 0, 40 * g.sz)) } };
+    const next = () => { g.level = wave; wave++; for (let i = 0; i < 2 + wave + g.n; i++) { const e = rnd(1) < .5; rocks.push(rock(e ? 0 : rnd(W), e ? rnd(H) : 0, 40 * g.sz)) } };
     const wr = o => { o.x = (o.x + W) % W; o.y = (o.y + H) % H };
     return dt => {
       const I = P[0];

@@ -5,9 +5,9 @@ E.maze = {
   t: 'Maze', c: 'arcade', vs: 0, n: 2, v: [['NEON MAZE', {}], ['MAZE HUNTERS', { n: 4 }], ['MAZE CALM', { n: 1, sp: .8, pal: 'MINT' }], ['MAZE MIRROR', { mods: ['mirror'] }], ['MAZE DRUNK', { mods: ['drunk'], pal: 'ULTRA' }]],
   f(g) {
     const K = g.K, C = 9, R = 15, Z = 36, X0 = 18, Y0 = 60, BIT = { u: 1, r: 2, d: 4, l: 8 }, OPP = { u: 'd', d: 'u', l: 'r', r: 'l' };
-    let wl, dots, pl, ch, lvl = 0;
+    let wl, dots, pl, ch, lvl = g.lv0 || 0;
     const build = () => {
-      wl = new Array(C * R).fill(15); const seen = new Set([0]), st = [0];
+      g.level = lvl; wl = new Array(C * R).fill(15); const seen = new Set([0]), st = [0];
       while (st.length) { const c = st[st.length - 1], x = c % C, y = c / C | 0; const nb = Object.entries(DIRS).filter(([, [dx, dy]]) => x + dx >= 0 && x + dx < C && y + dy >= 0 && y + dy < R && !seen.has((y + dy) * C + x + dx)); if (!nb.length) { st.pop(); continue } const [d, [dx, dy]] = pick(nb), n = (y + dy) * C + x + dx; wl[c] &= ~BIT[d]; wl[n] &= ~BIT[OPP[d]]; seen.add(n); st.push(n) }
       for (let i = 0; i < 25; i++) { const x = ri(1, C - 2), y = ri(1, R - 2), d = pick(['r', 'd']); wl[y * C + x] &= ~BIT[d]; const [dx, dy] = DIRS[d]; wl[(y + dy) * C + x + dx] &= ~BIT[OPP[d]] }
       dots = new Set(Array.from({ length: C * R }, (_, i) => i)); pl = { c: (R - 1) * C + 4, t: 0, d: '', nd: '', from: (R - 1) * C + 4 }; dots.delete(pl.c);
@@ -114,9 +114,9 @@ E.ring = {
 E.lander = {
   t: 'Lander', c: 'arcade', vs: 0, n: 1, v: [['NEON LANDER', {}], ['LANDER HEAVY', { sp: 1.4, pal: 'INFERNO' }], ['LANDER MOON', { sp: .7, pal: 'ICE' }], ['LANDER MIRROR', { mods: ['mirror'] }]],
   f(g) {
-    const K = g.K; let s, ter, pad, lvl = 0, fuel, done = 0;
+    const K = g.K; let s, ter, pad, lvl = g.lv0 || 0, fuel, done = 0;
     const lay = () => {
-      ter = []; const pi = ri(1, 6); let y = 520;
+      g.level = lvl; ter = []; const pi = ri(1, 6); let y = 520;
       for (let i = 0; i <= 8; i++) { if (i != pi + 1) y = clamp(y + rnd(-70, 70), 380, 610); ter.push(i * 45, y) }
       pad = pi * 45; s = { x: rnd(60, 300), y: 70, vx: rnd(-30, 30), vy: 0, a: -PI / 2 }; fuel = 100;
     };
@@ -351,9 +351,9 @@ E.blocks = {
 E.lights = {
   t: 'Lights Out', c: 'puzzle', vs: 0, n: 5, v: [['NEON LIGHTS OUT', {}], ['LIGHTS OUT 4×4', { n: 4, pal: 'MINT' }], ['LIGHTS OUT 6×6', { n: 6, pal: 'ULTRA' }]],
   f(g) {
-    const K = g.K, N = g.n, Z = 320 / N, X0 = 20, Y0 = 160; let b, lvl = 0, moves = 0, cur = 0, wait = 0;
+    const K = g.K, N = g.n, Z = 320 / N, X0 = 20, Y0 = 160; let b, lvl = g.lv0 || 0, moves = 0, cur = 0, wait = 0;
     const tog = i => { const x = i % N, y = i / N | 0; for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) if (x + dx >= 0 && x + dx < N && y + dy >= 0 && y + dy < N) b[(y + dy) * N + x + dx] ^= 1 };
-    const lay = () => { b = new Array(N * N).fill(0); for (let i = 0; i < 3 + lvl * 2; i++) tog(ri(0, N * N - 1)); if (b.every(v => !v)) tog(0); moves = 0 };
+    const lay = () => { g.level = lvl; b = new Array(N * N).fill(0); for (let i = 0; i < 3 + lvl * 2; i++) tog(ri(0, N * N - 1)); if (b.every(v => !v)) tog(0); moves = 0 };
     lay();
     return dt => {
       if (wait > 0) { if ((wait -= dt) <= 0) lay() }

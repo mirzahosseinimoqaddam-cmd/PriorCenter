@@ -1,7 +1,7 @@
 // Self-check: runs every catalog game in every local mode with random input; fails on exceptions or NaN draw values.
 // Run: node neon/web/test.js
 const fs = require('fs'), vm = require('vm'), path = require('path');
-const src = ['engine.js', 'games1.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js'].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
+const src = ['engine.js', 'games1.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'games6.js', 'progress.js'].map(f => fs.readFileSync(path.join(__dirname, f), 'utf8')).join('\n');
 const ctx = vm.createContext({ console, performance, Math, JSON, setTimeout, localStorage: { getItem: () => null, setItem() { } } });
 vm.runInContext(src, ctx);
 if (!process.env.BOTS_ONLY) vm.runInContext(`
@@ -42,4 +42,28 @@ vm.runInContext(`;(function(){
     else console.log('bot ok', e, 'diff', diff, 'won in', (f / 60).toFixed(0) + 's');
   }
   if (bad.length) { console.log('BOT FAIL', bad); throw new Error('bot check failed') }
+})();`, ctx);
+
+// Progress check: stats, play time, saved levels, streaks, XP, trophies and the reminder plan.
+vm.runInContext(`;(function(){
+  const ok = (c, m) => { if (!c) throw new Error('progress check: ' + m) };
+  PR = Object.assign(blank(), {}); const day = 864e5, now = Date.now();
+  ok(planReminders(now).length == 0, 'no reminders before the first game');
+  const c = { name: 'NEON SUDOKU', e: 'sudoku' };
+  let r = record(c, { mode: 'solo', secs: 120, score: 3, level: 2 });
+  ok(PR.plays == 1 && statOf('NEON SUDOKU').t == 120 && statOf('NEON SUDOKU').lv == 2, 'stats recorded');
+  ok(r.xp > 0 && PR.got.first, 'xp and first trophy');
+  record(c, { mode: 'solo', secs: 60, score: 5, level: 1 });
+  ok(statOf('NEON SUDOKU').lv == 2 && statOf('NEON SUDOKU').b == 5, 'saved level keeps the furthest, best keeps the highest');
+  PR.days = {}; PR.days[dayKey(now)] = 10; PR.days[dayKey(now - day)] = 10; PR.days[dayKey(now - 2 * day)] = 10;
+  ok(streak(now) == 3, 'streak counts today');
+  delete PR.days[dayKey(now)]; ok(streak(now) == 2, 'streak alive until midnight');
+  const plan = planReminders(new Date(new Date(now).setHours(10, 0, 0, 0)).getTime());
+  ok(plan.length >= 5 && plan.every(p => p.at > 0 && p.title && p.body), 'reminder plan');
+  ok(plan[0].title.includes('2-day streak'), 'streak-at-risk reminder first: ' + plan[0].title);
+  const days = new Set(plan.map(p => dayKey(p.at))); ok(days.size == plan.length, 'at most one reminder a day');
+  ok(planReminders(now, true)[0].title.length > 0, 'persian plan');
+  ok(lvlOf(0) == 1 && lvlOf(lvlXP(5)) == 5 && lvlOf(lvlXP(5) - 1) == 4, 'xp levels');
+  ok(isOpen('pong') && !isOpen(ORDER()[40]), 'unlock order');
+  console.log('progress ok');
 })();`, ctx);
