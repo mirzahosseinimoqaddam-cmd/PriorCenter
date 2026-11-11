@@ -97,16 +97,25 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
+        public String sharePng(String base64, String name) {
+            if (Build.VERSION.SDK_INT < 29) return savePng(base64, name); // older phones: save only
+            try {
+                Uri uri = store(base64, name);
+                Intent send = new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(Intent.createChooser(send, "Build AI"));
+                return "ok";
+            } catch (Exception e) {
+                return "Could not share: " + e.getMessage();
+            }
+        }
+
+        @JavascriptInterface
         public String savePng(String base64, String name) {
             try {
                 byte[] png = Base64.decode(base64, Base64.DEFAULT);
                 if (Build.VERSION.SDK_INT >= 29) {
-                    ContentValues v = new ContentValues();
-                    v.put(MediaStore.Images.Media.DISPLAY_NAME, name);
-                    v.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-                    v.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/BuildAI");
-                    Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
-                    try (OutputStream o = getContentResolver().openOutputStream(uri)) { o.write(png); }
+                    store(base64, name);
                 } else {
                     File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "BuildAI");
                     dir.mkdirs();
@@ -117,6 +126,19 @@ public class MainActivity extends Activity {
                 return "Could not save: " + e.getMessage();
             }
         }
+    }
+
+    /** Writes the PNG to Pictures/BuildAI (Android 10+) and returns its content address. */
+    private Uri store(String base64, String name) throws IOException {
+        byte[] png = Base64.decode(base64, Base64.DEFAULT);
+        ContentValues v = new ContentValues();
+        v.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+        v.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        v.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/BuildAI");
+        Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+        if (uri == null) throw new IOException("no storage");
+        try (OutputStream o = getContentResolver().openOutputStream(uri)) { o.write(png); }
+        return uri;
     }
 
     @Override

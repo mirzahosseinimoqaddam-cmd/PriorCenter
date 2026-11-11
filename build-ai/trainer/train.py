@@ -77,6 +77,10 @@ def main():
     keep = [i for i, c in enumerate(caps) if c and is_halal(c)]
     print(f"halal filter: training on {len(keep)} of {len(caps)} images")
     tokens, caps = tokens[keep], [caps[i] for i in keep]
+    # each source counts by the square root of its size, so 50k sprites don't drown 300 icons
+    src_path = os.path.join(args.data, "sources.npy")
+    src = torch.from_numpy(np.load(src_path).astype(np.int64))[keep] if os.path.exists(src_path) else torch.zeros(len(keep), dtype=torch.long)
+    weights = 1.0 / torch.bincount(src).float().sqrt()[src]
     palette = json.load(open(os.path.join(args.data, "palette.json")))
     info = json.load(open(os.path.join(args.data, "stats.json")))
     ck_path = os.path.join(args.out, "ckpt.pt")
@@ -113,7 +117,7 @@ def main():
     t0, avg = time.time(), None
     model.train()
     while step < args.steps:
-        idx = torch.randint(0, len(tokens), (args.batch,))
+        idx = torch.multinomial(weights, args.batch, replacement=True)
         pix, txt = tokens[idx].clone(), text[idx].clone()
         # mirror half the images; pixel art reads the same both ways
         flip = torch.rand(args.batch) < 0.5

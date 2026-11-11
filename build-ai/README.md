@@ -33,8 +33,8 @@ build-ai/
 | APK | built by GitHub Actions → release `buildai-latest` |
 | **Real 16×16 model on the 1.4M-image set** | **next: run `trainer/train_16x16.ipynb` on Kaggle or Colab** |
 
-Until the real model is trained, the APK carries `models/demo-shapes16.bin`. This is a 0.9M test model trained for 12 minutes
-on a CPU, and it only knows shapes and colours ("big red heart", "small blue circle").
+The APK carries `models/pixel16.bin`: 3M parameters, trained on a CPU on 10,149 free images (see Data and licences).
+The notebook trains a bigger model on the 1.4M set as well; import its `pixel16.bin` in the app or commit it here.
 
 ## Train the real model
 
@@ -60,11 +60,21 @@ python test_parity.py demo.bin
 
 | Source | Licence | Used for |
 |---|---|---|
-| [Angais/pixel-art-atlas-1.4m](https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m) | see its dataset card (checked in notebook step 1) | main set |
-| [ptx0/free-to-use-pixelart](https://huggingface.co/datasets/ptx0/free-to-use-pixelart) | MIT (PixilArt free-to-use) | more art, captioned by BLIP |
-| [jainr3/diffusiondb-pixelart](https://huggingface.co/datasets/jainr3/diffusiondb-pixelart) | CC0 | AI pixel-art generator samples (only true pixel grids are kept) |
-| [tstamborski/pixelart-icons](https://github.com/tstamborski/pixelart-icons) | CC0 | 16×16 icons |
-| [famfamfam Silk icons](http://www.famfamfam.com/lab/icons/silk/) ([GitHub copy](https://github.com/markjames/famfamfam-silk-icons)) | CC-BY 2.5, credit Mark James | 16×16 icons |
+| [Angais/pixel-art-atlas-1.4m](https://huggingface.co/datasets/Angais/pixel-art-atlas-1.4m) | see its dataset card (checked in notebook step 1) | main set (notebook) |
+| [ptx0/free-to-use-pixelart](https://huggingface.co/datasets/ptx0/free-to-use-pixelart) | MIT (PixilArt free-to-use) | more art, captioned by BLIP (notebook) |
+| [jainr3/diffusiondb-pixelart](https://huggingface.co/datasets/jainr3/diffusiondb-pixelart) | CC0 | AI pixel-art generator samples (notebook) |
+| 16×16 sprites of the DeepLearning.AI "How Diffusion Models Work" course ([copy](https://github.com/Shamik-07/CodeSnippets)) | free course data; sprites by ElvGames, kyrise and FrootsnVeggies (itch.io free packs) | 1,114 unique heroes, monsters, food, items |
+| [Twemoji](https://github.com/jdecked/twemoji) | CC-BY 4.0, © Twitter / X and contributors | 3,955 emoji (names give 1,000+ words) |
+| [Kenney asset pack 1](https://github.com/iwenzhou/kenney) | CC0 (Kenney.nl) | 3,048 game sprites |
+| [Pixel-Art-Prototyping-CC0-Collection](https://github.com/PixelRubro/Pixel-Art-Prototyping-CC0-Collection) | CC0 | 784 pirate / platformer sprites |
+| [project-cordon-sprites](https://github.com/doficia/project-cordon-sprites) | CC0 | 79 sprites |
+| [Pixel_Icons](https://github.com/MarcelloCalligaris/Pixel_Icons) | CC0 | 44 icons |
+| [unicornhat weather icons](https://github.com/LoveBootCaptain/unicornhat_weather_icons) | MIT | 23 weather icons |
+| [tstamborski/pixelart-icons](https://github.com/tstamborski/pixelart-icons) | CC0 | 254 icons |
+| [famfamfam Silk icons](http://www.famfamfam.com/lab/icons/silk/) ([GitHub copy](https://github.com/markjames/famfamfam-silk-icons)) | CC-BY 2.5, credit Mark James | 997 icons |
+
+The model bundled in the APK (`models/pixel16.bin`) was trained on the GitHub sources above (10,149 images after the halal filter).
+Art bigger than 16×16 is cropped to its content and shrunk (at most 6×); a colour word is added to every caption.
 
 **Halal filter:** `train.py` leaves out every image whose caption contains a word from `NOT_HALAL` in `prepare.py`
 (alcohol, pork, gambling, nudity, drugs, idols), plus every image with no caption. The model never sees those words, so prompts with them are ignored.

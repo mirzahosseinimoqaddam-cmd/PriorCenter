@@ -43,8 +43,12 @@ var BuildAIEngine = (function () {
     var words = String(prompt).toLowerCase().match(/[a-z0-9]+/g) || [];
     var ids = [], unknown = [];
     for (var i = 0; i < words.length && ids.length < m.cfg.text_len; i++) {
-      var id = m.index[words[i]];
-      if (id === undefined) { id = 1; unknown.push(words[i]); }
+      var w = words[i], id = m.index[w];
+      // plurals: apples -> apple, boxes -> box, berries -> berry
+      if (id === undefined && /s$/.test(w)) id = m.index[w.slice(0, -1)];
+      if (id === undefined && /es$/.test(w)) id = m.index[w.slice(0, -2)];
+      if (id === undefined && /ies$/.test(w)) id = m.index[w.slice(0, -3) + 'y'];
+      if (id === undefined) { id = 1; unknown.push(w); }
       ids.push(id);
     }
     while (ids.length < m.cfg.text_len) ids.push(0);
@@ -178,7 +182,8 @@ var BuildAIEngine = (function () {
   }
 
   /* Make `count` pictures for a prompt.
-   * opts: count, temperature (1.0), topK (40), guidance (3.0), seed, mirror (false)
+   * opts: count, temperature (1.0), topK (40), guidance (3.0), seed, mirror (false),
+   *       fixed (array of size*size: palette id to keep that pixel, -1 to let the AI draw it)
    * onProgress(done, total) is called as rows finish.
    * Returns { images: [Uint8Array(size*size) of palette ids], unknown: [words not known] }
    */
@@ -187,6 +192,7 @@ var BuildAIEngine = (function () {
     var count = opts.count || 1, g = opts.guidance === undefined ? 3.0 : opts.guidance;
     var temperature = opts.temperature === undefined ? 1.0 : opts.temperature;
     var topK = opts.topK === undefined ? 40 : opts.topK;
+    var fixed = opts.fixed || null;
     var rand = rng(opts.seed === undefined ? (Math.random() * 4294967296) >>> 0 : opts.seed);
     var c = m.cfg, N = c.size * c.size, L = c.text_len;
     var tok = tokenize(m, prompt), empty = [];
@@ -207,16 +213,16 @@ var BuildAIEngine = (function () {
       for (b = 0; b < count; b++) {
         var lc = lg[b];
         if (useG) { var u = lg[b + count]; for (j = 0; j < lc.length; j++) lc[j] = u[j] + g * (lc[j] - u[j]); }
-        var px = sample(lc, temperature, topK, rand);
+        var x = p % c.size, px;
+        if (fixed && fixed[p] >= 0) px = fixed[p]; // a pixel the user locked
+        else if (opts.mirror && x >= c.size >> 1) px = images[b][p - x + c.size - 1 - x]; // copy the left half while drawing
+        else px = sample(lc, temperature, topK, rand);
         images[b][p] = px;
         toks[b] = px; if (useG) toks[b + count] = px;
       }
       if (p < N - 1) lg = stepBatch(m, seqs, toks, false, scratch);
       if (onProgress && (p + 1) % c.size === 0) onProgress(p + 1, N);
     }
-    if (opts.mirror) images.forEach(function (im) {
-      for (var y = 0; y < c.size; y++) for (var x = 0; x < c.size >> 1; x++) im[y * c.size + c.size - 1 - x] = im[y * c.size + x];
-    });
     return { images: images, unknown: tok.unknown };
   }
 
@@ -239,7 +245,7 @@ var BuildAIEngine = (function () {
         if (d.type === 'load') {
           model = loadModel(d.buffer);
           self.postMessage({ type: 'loaded', name: model.name, size: model.cfg.size, palette: model.palette,
-            transparent: model.transparent, words: model.vocab.length, step: model.step,
+            transparent: model.transparent, words: model.vocab.length, vocab: model.vocab, step: model.step,
             params: Object.keys(model.w).reduce(function (a, k) { return a + model.w[k].length; }, 0) });
         } else if (d.type === 'generate') {
           var t0 = Date.now();

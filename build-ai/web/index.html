@@ -7,7 +7,7 @@
 <style>
   :root {
     --bg: #0d0f17; --panel: #161a26; --panel2: #1e2333; --line: #2b3247; --text: #e9ecf5; --dim: #8d95ab;
-    --accent: #ffcc33; --accent2: #ff6b5a; --ok: #4ade80; --checker1: #2a2f40; --checker2: #23283a;
+    --accent: #ffcc33; --accent2: #ff6b5a; --checker1: #2a2f40; --checker2: #23283a;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -17,23 +17,25 @@
   .logo { width: 34px; height: 34px; image-rendering: pixelated; }
   h1 { font-size: 20px; margin: 0; letter-spacing: .5px; flex: 1; }
   h1 small { color: var(--dim); font-weight: 400; font-size: 12px; margin-inline-start: 6px; }
-  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; cursor: pointer; }
+  button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
   button:active { transform: translateY(1px); }
   button.primary { background: var(--accent); color: #1a1400; border-color: var(--accent); font-weight: 700; }
+  button.on { border-color: var(--accent); color: var(--accent); }
   button:disabled { opacity: .45; }
   .chip { padding: 5px 10px; border-radius: 999px; font-size: 13px; }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 12px; }
-  .status { font-size: 13px; color: var(--dim); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .status { font-size: 13px; color: var(--dim); }
   .status b { color: var(--text); font-weight: 600; }
   .warn { background: #3a2a10; border-color: #6b4a12; color: #ffd98a; font-size: 13px; }
-  textarea { width: 100%; min-height: 64px; resize: vertical; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; }
-  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  textarea, input[type=search] { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font: inherit; }
+  textarea { min-height: 60px; resize: vertical; }
+  textarea:focus, input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .row.spread { justify-content: space-between; }
   label.slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: 13px; color: var(--dim); flex: 1; min-width: 140px; }
   label.slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
-  .ideas { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 10px; }
-  .ideas button { font-size: 12px; padding: 4px 9px; border-radius: 999px; color: var(--dim); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+  .chips button { font-size: 12px; padding: 4px 9px; border-radius: 999px; color: var(--dim); }
   .bar { height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; margin-top: 10px; }
   .bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -41,42 +43,56 @@
     background: repeating-conic-gradient(var(--checker1) 0 25%, var(--checker2) 0 50%) 0 0 / 25% 25%; cursor: pointer; }
   .cell.sel { border-color: var(--accent); }
   canvas.px { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
-  .detail canvas.px { border-radius: 12px; border: 1px solid var(--line);
+  #big { width: 100%; aspect-ratio: 1; touch-action: none; image-rendering: pixelated; display: block; border-radius: 12px; border: 1px solid var(--line);
     background: repeating-conic-gradient(var(--checker1) 0 25%, var(--checker2) 0 50%) 0 0 / 12.5% 12.5%; }
+  .gridlines #big { background-image: linear-gradient(#ffffff14 1px, transparent 1px), linear-gradient(90deg, #ffffff14 1px, transparent 1px),
+    repeating-conic-gradient(var(--checker1) 0 25%, var(--checker2) 0 50%); background-size: 6.25% 6.25%, 6.25% 6.25%, 12.5% 12.5%; }
   select { font: inherit; background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+  .swatches { display: grid; grid-template-columns: repeat(16, 1fr); gap: 3px; margin: 8px 0; }
+  .swatches span { aspect-ratio: 1; border-radius: 4px; border: 2px solid transparent; cursor: pointer; }
+  .swatches span.sel { border-color: var(--text); }
+  .swatches span.clear { background: repeating-conic-gradient(#888 0 25%, #555 0 50%) 0 0 / 50% 50%; }
+  .tools button { padding: 7px 10px; }
   .hist { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
   .hist .cell { border-width: 1px; border-radius: 8px; }
-  h2 { font-size: 14px; color: var(--dim); font-weight: 600; margin: 4px 0 8px; text-transform: uppercase; letter-spacing: .6px; }
+  h2 { font-size: 13px; color: var(--dim); font-weight: 600; margin: 4px 0 8px; text-transform: uppercase; letter-spacing: .6px; flex: 1; }
   .muted { color: var(--dim); font-size: 13px; }
   .hidden { display: none !important; }
+  details summary { cursor: pointer; color: var(--dim); font-size: 13px; }
   .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--panel2); border: 1px solid var(--line); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 9; }
 </style>
 </head>
 <body>
 <header>
   <canvas class="logo" id="logo" width="16" height="16"></canvas>
-  <h1>Build AI <small data-t="tag">pixel art · offline</small></h1>
-  <button class="chip" id="lang">فارسی</button>
+  <h1>Build AI <small data-t="tag"></small></h1>
+  <button class="chip" id="lang"></button>
 </header>
 
 <div class="panel">
-  <div class="status" id="status"><span data-t="loading">Loading model…</span></div>
-  <div class="row" style="margin-top:8px"><button class="chip" id="import" data-t="import">Import model file</button></div>
+  <div class="status" id="status"></div>
+  <div class="row" style="margin-top:8px"><button class="chip" id="import" data-t="import"></button></div>
 </div>
-<div class="panel warn hidden" id="demoWarn" data-t="demo">This is a test model. It only knows simple shapes and colours (try “big red heart”). Train the real model with the notebook, then import it here.</div>
+<div class="panel warn hidden" id="demoWarn" data-t="demo"></div>
 
 <div class="panel">
-  <textarea id="prompt" maxlength="200" data-tp="placeholder" placeholder="Describe your pixel art, e.g. red potion bottle"></textarea>
-  <div class="ideas" id="ideas"></div>
-  <div class="row">
-    <label class="slider"><span data-t="creative">Creativity</span><output id="tv">1.0</output><input id="temp" type="range" min="0.5" max="1.5" step="0.1" value="1.0"></label>
-    <label class="slider"><span data-t="follow">Follow prompt</span><output id="gv">3</output><input id="guide" type="range" min="1" max="6" step="0.5" value="3"></label>
+  <textarea id="prompt" maxlength="200"></textarea>
+  <div class="chips" id="ideas"></div>
+  <details id="wordsBox">
+    <summary data-t="knows"></summary>
+    <input type="search" id="wordSearch" style="margin-top:8px">
+    <div class="chips" id="words"></div>
+  </details>
+  <div class="row" style="margin-top:8px">
+    <label class="slider"><span data-t="creative"></span><output id="tv">0.9</output><input id="temp" type="range" min="0.5" max="1.5" step="0.1" value="0.9"></label>
+    <label class="slider"><span data-t="follow"></span><output id="gv">3</output><input id="guide" type="range" min="1" max="6" step="0.5" value="3"></label>
   </div>
   <div class="row spread" style="margin-top:10px">
-    <label class="muted"><input type="checkbox" id="mirror"> <span data-t="mirror">Symmetric</span></label>
+    <label class="muted"><input type="checkbox" id="mirror"> <span data-t="mirror"></span></label>
     <div class="row">
-      <select id="count"><option>1</option><option>2</option><option selected>4</option></select>
-      <button class="primary" id="go" data-t="make" disabled>Make it</button>
+      <button id="surprise" data-t="surprise"></button>
+      <select id="count"><option>1</option><option>2</option><option selected>4</option><option>6</option></select>
+      <button class="primary" id="go" data-t="make" disabled></button>
     </div>
   </div>
   <div class="bar hidden" id="bar"><i></i></div>
@@ -84,27 +100,49 @@
 </div>
 
 <div class="panel hidden" id="results">
+  <div class="row"><h2 data-t="results"></h2><button class="chip" id="sheet" data-t="sheet"></button></div>
   <div class="grid" id="grid"></div>
 </div>
 
-<div class="panel detail hidden" id="detail">
-  <canvas class="px" id="big" width="16" height="16"></canvas>
+<div class="panel" id="detail">
+  <div class="row"><h2 data-t="editor"></h2><button class="chip" id="blank" data-t="blank"></button></div>
+  <div id="bigWrap" class="gridlines"><canvas id="big" width="16" height="16"></canvas></div>
+  <div class="row tools" style="margin-top:10px">
+    <button id="tPen" class="on" data-t="pen"></button>
+    <button id="tErase" data-t="erase"></button>
+    <button id="tFill" data-t="fill"></button>
+    <button id="tPick" data-t="pick"></button>
+    <button id="undo" data-t="undo"></button>
+    <button id="grid1" class="on" data-t="gridBtn"></button>
+  </div>
+  <div class="swatches" id="swatches"></div>
+  <details><summary data-t="allColours"></summary><div class="swatches" id="allSwatches"></div></details>
   <div class="row" style="margin-top:10px">
+    <button class="primary" id="finish" data-t="finish"></button>
+    <button id="bottom" data-t="bottom"></button>
+    <button id="again" data-t="again"></button>
+  </div>
+  <div class="muted" style="margin-top:6px" data-t="finishHelp"></div>
+  <div class="row" style="margin-top:10px">
+    <button id="outline" data-t="outline"></button>
+    <button id="flip" data-t="flip"></button>
     <select id="pal">
-      <option value="orig" data-t="palOrig">Original colours</option>
+      <option value="orig" data-t="palOrig"></option>
       <option value="gb">Game Boy</option>
       <option value="pico">PICO-8</option>
       <option value="nes">NES</option>
-      <option value="gray" data-t="palGray">Grayscale</option>
+      <option value="gray" data-t="palGray"></option>
     </select>
-    <button id="save1" data-t="saveSmall">Save PNG</button>
-    <button id="save32" data-t="saveBig">Save big (512px)</button>
-    <button id="again" data-t="again">More like this</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button id="save1" data-t="saveSmall"></button>
+    <button id="save32" data-t="saveBig"></button>
+    <button id="share" data-t="share"></button>
   </div>
 </div>
 
 <div class="panel hidden" id="historyPanel">
-  <h2 data-t="history">Recent</h2>
+  <div class="row"><h2 data-t="history"></h2><button class="chip" id="clearHist" data-t="clear"></button></div>
   <div class="hist" id="history"></div>
 </div>
 
@@ -114,24 +152,33 @@
 var T = {
   en: { tag: 'pixel art · offline', loading: 'Loading model…', import: 'Import model file', make: 'Make it', creative: 'Creativity', follow: 'Follow prompt',
     mirror: 'Symmetric', palOrig: 'Original colours', palGray: 'Grayscale', saveSmall: 'Save PNG', saveBig: 'Save big (512px)', again: 'More like this',
-    history: 'Recent', placeholder: 'Describe your pixel art, e.g. red potion bottle', noModel: 'No model yet. Import a model.bin file.',
+    history: 'Recent', placeholder: 'Describe your pixel art in English, e.g. red apple, blue potion, green monster', noModel: 'No model yet. Import a model.bin file.',
     model: 'Model', words: 'words', working: 'Drawing…', took: 'Made in', unknown: 'Words it does not know yet (ignored):', saved: 'Saved to Pictures/BuildAI',
-    demo: 'This is a test model. It only knows simple shapes and colours (try “big red heart”). Train the real model with the notebook, then import it here.',
-    badFile: 'That file is not a Build AI model.', empty: 'Type what you want first.', imported: 'Model imported', lang: 'فارسی' },
+    demo: 'This is a test model. It only knows simple shapes and colours (try “big red heart”).',
+    badFile: 'That file is not a Build AI model.', empty: 'Type what you want first.', imported: 'Model imported', lang: 'فارسی',
+    knows: 'Words it knows', search: 'Search words…', surprise: 'Surprise me', results: 'Results', sheet: 'Save all as sheet', editor: 'Edit',
+    blank: 'Draw from scratch', pen: 'Pen', erase: 'Eraser', fill: 'Fill', pick: 'Pick colour', undo: 'Undo', gridBtn: 'Grid', allColours: 'All colours',
+    finish: 'AI: finish my drawing', bottom: 'Redraw bottom half', finishHelp: 'Pixels you paint stay; the AI draws the rest to match your words.',
+    outline: 'Add outline', flip: 'Flip', share: 'Share', clear: 'Clear', cleared: 'History cleared', needPrompt: 'Write what it is in the box above first.' },
   fa: { tag: 'پیکسل آرت · آفلاین', loading: 'در حال بارگذاری مدل…', import: 'وارد کردن فایل مدل', make: 'بساز', creative: 'خلاقیت', follow: 'پیروی از متن',
     mirror: 'قرینه', palOrig: 'رنگ‌های اصلی', palGray: 'سیاه‌وسفید', saveSmall: 'ذخیره PNG', saveBig: 'ذخیره بزرگ (۵۱۲)', again: 'مشابه این',
-    history: 'اخیر', placeholder: 'پیکسل آرتت را به انگلیسی توصیف کن، مثلا red potion bottle', noModel: 'هنوز مدلی نیست. فایل model.bin را وارد کن.',
+    history: 'اخیر', placeholder: 'پیکسل آرتت را به انگلیسی توصیف کن، مثلا red apple یا blue potion', noModel: 'هنوز مدلی نیست. فایل model.bin را وارد کن.',
     model: 'مدل', words: 'کلمه', working: 'در حال کشیدن…', took: 'ساخته شد در', unknown: 'کلمه‌هایی که هنوز بلد نیست (نادیده گرفته شد):', saved: 'در Pictures/BuildAI ذخیره شد',
-    demo: 'این یک مدل آزمایشی است و فقط شکل‌ها و رنگ‌های ساده را می‌شناسد (مثلا big red heart). مدل اصلی را با نوت‌بوک آموزش بده و اینجا واردش کن.',
-    badFile: 'این فایل مدل Build AI نیست.', empty: 'اول بنویس چه می‌خواهی.', imported: 'مدل وارد شد', lang: 'English' }
+    demo: 'این یک مدل آزمایشی است و فقط شکل‌ها و رنگ‌های ساده را می‌شناسد.',
+    badFile: 'این فایل مدل Build AI نیست.', empty: 'اول بنویس چه می‌خواهی.', imported: 'مدل وارد شد', lang: 'English',
+    knows: 'کلمه‌هایی که بلد است', search: 'جستجوی کلمه…', surprise: 'غافلگیرم کن', results: 'نتیجه‌ها', sheet: 'ذخیره همه در یک تصویر', editor: 'ویرایش',
+    blank: 'از صفر بکش', pen: 'قلم', erase: 'پاک‌کن', fill: 'سطل رنگ', pick: 'برداشتن رنگ', undo: 'برگشت', gridBtn: 'خطوط', allColours: 'همه رنگ‌ها',
+    finish: 'هوش مصنوعی: کامل کن', bottom: 'نیمه پایین را دوباره بکش', finishHelp: 'پیکسل‌هایی که خودت می‌کشی می‌مانند و بقیه را هوش مصنوعی مطابق متن می‌کشد.',
+    outline: 'افزودن دور خط', flip: 'قرینه کردن', share: 'اشتراک', clear: 'پاک کردن', cleared: 'تاریخچه پاک شد', needPrompt: 'اول در کادر بالا بنویس این چیست.' }
 };
 var PALS = {
   gb: [[15,56,15],[48,98,48],[139,172,15],[155,188,15]],
   pico: [[0,0,0],[29,43,83],[126,37,83],[0,135,81],[171,82,54],[95,87,79],[194,195,199],[255,241,232],[255,0,77],[255,163,0],[255,236,39],[0,228,54],[41,173,255],[131,118,156],[255,119,168],[255,204,170]],
   nes: [[0,0,0],[124,124,124],[188,188,188],[248,248,248],[168,16,0],[248,56,0],[248,120,88],[0,120,0],[0,184,0],[184,248,24],[0,88,248],[104,136,252],[60,188,252],[104,68,252],[216,0,204],[248,184,0],[172,124,0],[0,64,88],[248,216,120],[248,164,192]]
 };
-var IDEAS = ['red potion', 'green slime', 'iron sword', 'golden coin', 'pink heart', 'skull', 'treasure chest', 'pine tree', 'blue gem', 'cat'];
-var DEMO_IDEAS = ['big red heart', 'small blue circle', 'big yellow cross', 'big green triangle', 'small purple square', 'big orange diamond'];
+var IDEAS = ['red apple', 'blue potion', 'green monster', 'hero character front view', 'yellow star', 'sword', 'white cat face', 'red heart', 'gold coin', 'tree', 'house', 'magic item'];
+var COLOURS = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple', 'pink', 'brown', 'white', 'gray', 'black'];
+var SKIP_WORDS = { with: 1, sign: 1, and: 1, of: 1, the: 1, face: 1, piece: 1, single: 1, rpg: 1, left: 1, right: 1, heavy: 1, light: 1, dark: 1, view: 1 };
 
 var $ = function (id) { return document.getElementById(id); };
 var lang = 'en', info = null, worker = null, results = [], selected = -1, lastPrompt = '', reqId = 0;
@@ -147,6 +194,7 @@ function applyLang() {
   document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
   document.querySelectorAll('[data-t]').forEach(function (el) { el.textContent = t(el.dataset.t); });
   $('prompt').placeholder = t('placeholder');
+  $('wordSearch').placeholder = t('search');
   $('lang').textContent = t('lang');
   showStatus();
 }
@@ -177,7 +225,7 @@ function draw(canvas, img, mode, scale) {
   var ctx = canvas.getContext('2d'), data = ctx.createImageData(s * scale, s * scale);
   for (var y = 0; y < s * scale; y++) for (var x = 0; x < s * scale; x++) {
     var id = img[((y / scale) | 0) * s + ((x / scale) | 0)], o = (y * s * scale + x) * 4;
-    if (id === info.transparent) { data.data[o + 3] = 0; continue; }
+    if (id === info.transparent) continue;
     var c = colourOf(id, mode);
     data.data[o] = c[0]; data.data[o + 1] = c[1]; data.data[o + 2] = c[2]; data.data[o + 3] = 255;
   }
@@ -194,7 +242,7 @@ function drawLogo() {
 // ---------- model ----------
 function showStatus(err) {
   var st = $('status');
-  if (err) { st.innerHTML = ''; st.textContent = err; return; }
+  if (err) { st.textContent = err; return; }
   if (!info) { st.textContent = worker ? t('loading') : t('noModel'); return; }
   st.innerHTML = '';
   var b = document.createElement('b'); b.textContent = info.name; st.append(t('model') + ': ', b,
@@ -224,8 +272,11 @@ function onWorker(ev) {
     info = d; showStatus();
     var demo = /demo/i.test(d.name);
     $('demoWarn').classList.toggle('hidden', !demo);
-    renderIdeas(demo ? DEMO_IDEAS : IDEAS);
+    renderIdeas();
+    renderWords('');
+    renderSwatches();
     $('go').disabled = false;
+    if (!editImg) newBlank(); else redrawEditor();
     drawHistory();
   } else if (!pending || d.id !== pending.id) {
     if (d.type === 'error' && !info) { pool.forEach(function (w) { w.terminate(); }); pool = []; worker = null; showStatus(t('badFile')); }
@@ -236,18 +287,18 @@ function onWorker(ev) {
   } else if (d.type === 'done') {
     pending.out[d.part] = d; pending.left--;
     if (pending.left) return;
-    var all = [], ms = 0, unknown = [];
-    pending.out.forEach(function (r) { all = all.concat(r.images.map(function (a) { return Array.from(a); })); ms = Math.max(ms, r.ms); unknown = r.unknown; });
+    var all = [], ms = 0, unknown = [], p = pending;
+    p.out.forEach(function (r) { all = all.concat(r.images.map(function (a) { return Array.from(a); })); ms = Math.max(ms, r.ms); unknown = r.unknown; });
     pending = null;
-    $('bar').classList.add('hidden'); $('go').disabled = false;
-    results = all;
+    $('bar').classList.add('hidden'); setBusy(false);
     var msg = t('took') + ' ' + (ms / 1000).toFixed(1) + 's';
     if (unknown.length) msg += ' · ' + t('unknown') + ' ' + unknown.join(', ');
     $('info').textContent = msg;
-    showResults();
-    addHistory(lastPrompt, results);
+    if (p.edit) { pushUndo(); editImg = all[0]; redrawEditor(); }
+    else { results = all; showResults(); }
+    addHistory(lastPrompt, all);
   } else if (d.type === 'error') {
-    pending = null; $('bar').classList.add('hidden'); $('go').disabled = false; toast(d.message);
+    pending = null; $('bar').classList.add('hidden'); setBusy(false); toast(d.message);
   }
 }
 function fetchBuf(url) {
@@ -261,56 +312,179 @@ function loadModel() {
 }
 
 // ---------- making ----------
-function make(seed) {
+function setBusy(b) { ['go', 'finish', 'bottom', 'again', 'surprise'].forEach(function (id) { $(id).disabled = b; }); }
+/* count pictures for the prompt; fixed (optional) keeps those pixels; edit=true puts the single result into the editor */
+function make(opts) {
+  opts = opts || {};
   var p = $('prompt').value.trim();
-  if (!p) { toast(t('empty')); return; }
+  if (!p) { toast(opts.edit ? t('needPrompt') : t('empty')); $('prompt').focus(); return; }
   lastPrompt = p; store.set('prompt', p);
   reqId++;
-  $('go').disabled = true; $('bar').classList.remove('hidden'); $('bar').firstChild.style.width = '0';
+  setBusy(true); $('bar').classList.remove('hidden'); $('bar').firstChild.style.width = '0';
   $('info').textContent = t('working');
-  var total = +$('count').value, n = Math.min(pool.length, total), base = seed === undefined ? (Math.random() * 1e9) | 0 : seed;
-  pending = { id: reqId, total: total, left: n, out: [], done: [], counts: [] };
+  var total = opts.edit ? 1 : +$('count').value, n = Math.min(pool.length, total), base = (Math.random() * 1e9) | 0;
+  pending = { id: reqId, total: total, left: n, out: [], done: [], counts: [], edit: !!opts.edit };
   for (var i = 0; i < n; i++) {
     var c = Math.floor(total / n) + (i < total % n ? 1 : 0);
     pending.counts[i] = c; pending.done[i] = 0;
     pool[i].postMessage({ type: 'generate', id: reqId, part: i, prompt: p, opts: {
-      count: c, temperature: +$('temp').value, guidance: +$('guide').value, mirror: $('mirror').checked, seed: base + i * 7919 } });
+      count: c, temperature: +$('temp').value, guidance: +$('guide').value, mirror: $('mirror').checked,
+      seed: base + i * 7919, topK: 30, fixed: opts.fixed } });
   }
+}
+function surprise() {
+  var nouns = info.vocab.filter(function (w, i) { return i > 1 && i < 600 && w.length > 2 && COLOURS.indexOf(w) < 0 && !SKIP_WORDS[w] && !/\d/.test(w); });
+  var pick = function (a) { return a[(Math.random() * a.length) | 0]; };
+  $('prompt').value = pick(COLOURS) + ' ' + pick(nouns);
+  make();
 }
 function showResults() {
   var g = $('grid'); g.innerHTML = '';
-  g.style.gridTemplateColumns = results.length === 1 ? '1fr' : 'repeat(2, 1fr)';
+  g.style.gridTemplateColumns = results.length === 1 ? '1fr' : results.length > 4 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)';
   results.forEach(function (img, i) {
     var cell = document.createElement('div'); cell.className = 'cell';
     var c = document.createElement('canvas'); c.className = 'px'; draw(c, img, $('pal').value);
     cell.appendChild(c); cell.onclick = function () { pick(i); }; g.appendChild(cell);
   });
   $('results').classList.remove('hidden');
-  pick(0);
+  pick(Math.min(Math.max(selected, 0), results.length - 1));
 }
 function pick(i) {
   selected = i;
   Array.prototype.forEach.call($('grid').children, function (c, j) { c.classList.toggle('sel', j === i); });
-  draw($('big'), results[i], $('pal').value);
-  $('detail').classList.remove('hidden');
+  editImg = results[i].slice(); undoStack = []; locked = new Uint8Array(info.size * info.size);
+  redrawEditor();
 }
-function savePng(scale) {
-  var c = document.createElement('canvas'); draw(c, results[selected], $('pal').value, scale);
-  var name = 'buildai-' + (lastPrompt || 'art').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30) + '-' + Date.now() + '.png';
-  var url = c.toDataURL('image/png');
-  if (native) {
-    var r = native.savePng(url.split(',')[1], name);
-    toast(r === 'ok' ? t('saved') : r);
-  } else {
-    var a = document.createElement('a'); a.href = url; a.download = name; a.click();
+
+// ---------- editor ----------
+var editImg = null, locked = null, undoStack = [], tool = 'pen', colour = 0, painting = false;
+function newBlank() {
+  var n = info.size * info.size; pushUndo();
+  editImg = []; for (var i = 0; i < n; i++) editImg.push(info.transparent);
+  locked = new Uint8Array(n); redrawEditor();
+}
+function redrawEditor() { if (editImg) draw($('big'), editImg, $('pal').value); }
+function pushUndo() { if (editImg) { undoStack.push({ img: editImg.slice(), locked: locked.slice() }); if (undoStack.length > 50) undoStack.shift(); } }
+function setTool(tl) {
+  tool = tl;
+  [['pen', 'tPen'], ['erase', 'tErase'], ['fill', 'tFill'], ['pick', 'tPick']].forEach(function (p) { $(p[1]).classList.toggle('on', p[0] === tl); });
+}
+function usedColours() {
+  var seen = {}, out = [];
+  (editImg || []).forEach(function (id) { if (id !== info.transparent && !seen[id]) { seen[id] = 1; out.push(id); } });
+  return out;
+}
+function swatch(id, box) {
+  var s = document.createElement('span');
+  if (id === info.transparent) s.className = 'clear';
+  else { var c = info.palette[id]; s.style.background = 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'; }
+  if (id === colour) s.classList.add('sel');
+  s.onclick = function () { colour = id; setTool(id === info.transparent ? 'erase' : 'pen'); renderSwatches(); };
+  box.appendChild(s);
+}
+function renderSwatches() {
+  var box = $('swatches'); box.innerHTML = '';
+  var used = usedColours(); if (used.indexOf(colour) < 0 && colour !== info.transparent) used.unshift(colour);
+  used.slice(0, 31).forEach(function (id) { swatch(id, box); });
+  var all = $('allSwatches');
+  if (!all.children.length || all.dataset.model !== info.name) {
+    all.innerHTML = ''; all.dataset.model = info.name;
+    // sort by brightness so the grid reads like a colour chart
+    info.palette.map(function (c, i) { return i; }).sort(function (a, b) {
+      var A = info.palette[a], B = info.palette[b];
+      return (A[0] * 3 + A[1] * 6 + A[2]) - (B[0] * 3 + B[1] * 6 + B[2]);
+    }).forEach(function (id) { swatch(id, all); });
   }
+}
+function cellAt(ev) {
+  var r = $('big').getBoundingClientRect(), s = info.size;
+  var x = Math.floor((ev.clientX - r.left) / r.width * s), y = Math.floor((ev.clientY - r.top) / r.height * s);
+  return x < 0 || y < 0 || x >= s || y >= s ? -1 : y * s + x;
+}
+function paintAt(i) {
+  if (i < 0) return;
+  if (tool === 'pick') { colour = editImg[i]; setTool(colour === info.transparent ? 'erase' : 'pen'); renderSwatches(); return; }
+  var c = tool === 'erase' ? info.transparent : colour;
+  if (tool === 'fill') {
+    var from = editImg[i], s = info.size, stack = [i];
+    if (from === c) return;
+    while (stack.length) {
+      var k = stack.pop();
+      if (editImg[k] !== from) continue;
+      editImg[k] = c; locked[k] = 1;
+      var x = k % s;
+      if (x > 0) stack.push(k - 1); if (x < s - 1) stack.push(k + 1);
+      if (k >= s) stack.push(k - s); if (k < s * s - s) stack.push(k + s);
+    }
+  } else { editImg[i] = c; locked[i] = 1; }
+  redrawEditor();
+}
+$('big').addEventListener('pointerdown', function (e) {
+  if (!info) return;
+  pushUndo(); painting = tool === 'pen' || tool === 'erase';
+  $('big').setPointerCapture(e.pointerId); paintAt(cellAt(e));
+});
+$('big').addEventListener('pointermove', function (e) { if (painting) paintAt(cellAt(e)); });
+['pointerup', 'pointercancel'].forEach(function (n) { $('big').addEventListener(n, function () { if (painting) renderSwatches(); painting = false; }); });
+function undo() { var u = undoStack.pop(); if (u) { editImg = u.img; locked = u.locked; redrawEditor(); renderSwatches(); } }
+function finish() {
+  var fixed = editImg.map(function (id, i) { return locked[i] ? id : -1; });
+  make({ edit: true, fixed: fixed });
+}
+function redrawBottom() {
+  var half = info.size * info.size / 2;
+  make({ edit: true, fixed: editImg.map(function (id, i) { return i < half ? id : -1; }) });
+}
+function addOutline() {
+  pushUndo();
+  var s = info.size, src = editImg.slice(), dark = darkest(src);
+  for (var i = 0; i < s * s; i++) {
+    if (src[i] !== info.transparent) continue;
+    var x = i % s, near = (x > 0 && src[i - 1] !== info.transparent) || (x < s - 1 && src[i + 1] !== info.transparent) ||
+      (i >= s && src[i - s] !== info.transparent) || (i < s * s - s && src[i + s] !== info.transparent);
+    if (near) { editImg[i] = dark; locked[i] = 1; }
+  }
+  redrawEditor(); renderSwatches();
+}
+function darkest(img) {
+  var best = -1, bv = 1e9;
+  info.palette.forEach(function (c, i) { var v = c[0] * 3 + c[1] * 6 + c[2]; if (v < bv) { bv = v; best = i; } });
+  return best;
+}
+function flip() {
+  pushUndo();
+  var s = info.size, a = editImg.slice(), l = locked.slice();
+  for (var y = 0; y < s; y++) for (var x = 0; x < s; x++) { editImg[y * s + x] = a[y * s + s - 1 - x]; locked[y * s + x] = l[y * s + s - 1 - x]; }
+  redrawEditor();
+}
+
+// ---------- saving ----------
+function fileName(ext) { return 'buildai-' + (lastPrompt || 'art').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30) + '-' + Date.now() + ext; }
+function canvasOf(imgs, scale) {
+  var s = info.size, c = document.createElement('canvas'); c.width = s * scale * imgs.length; c.height = s * scale;
+  var ctx = c.getContext('2d'), tmp = document.createElement('canvas');
+  imgs.forEach(function (im, i) { draw(tmp, im, $('pal').value, scale); ctx.drawImage(tmp, i * s * scale, 0); });
+  return c;
+}
+function output(canvas, share) {
+  var url = canvas.toDataURL('image/png'), name = fileName('.png');
+  if (native) {
+    var r = share ? native.sharePng(url.split(',')[1], name) : native.savePng(url.split(',')[1], name);
+    if (!share || r !== 'ok') toast(r === 'ok' ? t('saved') : r);
+    return;
+  }
+  if (share && navigator.share) {
+    canvas.toBlob(function (b) { navigator.share({ files: [new File([b], name, { type: 'image/png' })] }).catch(function () {}); });
+    return;
+  }
+  var a = document.createElement('a'); a.href = url; a.download = name; a.click();
 }
 
 // ---------- history ----------
 function addHistory(prompt, imgs) {
   var h = store.get('history', []);
   imgs.forEach(function (im) { h.unshift({ p: prompt, i: im, m: info.name }); });
-  store.set('history', h.slice(0, 36));
+  store.set('history', h.slice(0, 48));
   drawHistory();
 }
 function drawHistory() {
@@ -320,38 +494,66 @@ function drawHistory() {
   h.forEach(function (e) {
     var cell = document.createElement('div'); cell.className = 'cell'; cell.title = e.p;
     var c = document.createElement('canvas'); c.className = 'px'; draw(c, e.i, 'orig'); cell.appendChild(c);
-    cell.onclick = function () { lastPrompt = e.p; $('prompt').value = e.p; results = [e.i]; showResults(); window.scrollTo(0, 0); };
+    cell.onclick = function () { lastPrompt = e.p; $('prompt').value = e.p; results = [e.i]; selected = 0; showResults(); $('detail').scrollIntoView({ behavior: 'smooth' }); };
     box.appendChild(cell);
   });
 }
-function renderIdeas(list) {
+
+// ---------- words ----------
+function knownPrompt(p) { return p.split(' ').every(function (w) { return info.vocab.indexOf(w) > 1; }); }
+function renderIdeas() {
   var box = $('ideas'); box.innerHTML = '';
-  list.forEach(function (w) {
+  IDEAS.filter(knownPrompt).slice(0, 10).forEach(function (w) {
     var b = document.createElement('button'); b.textContent = w;
     b.onclick = function () { $('prompt').value = w; };
+    box.appendChild(b);
+  });
+}
+function renderWords(q) {
+  var box = $('words'); box.innerHTML = '';
+  q = q.trim().toLowerCase();
+  info.vocab.slice(2).filter(function (w) { return !q || w.indexOf(q) >= 0; }).slice(0, q ? 120 : 80).forEach(function (w) {
+    var b = document.createElement('button'); b.textContent = w;
+    b.onclick = function () { var v = $('prompt').value.trim(); $('prompt').value = (v ? v + ' ' : '') + w; };
     box.appendChild(b);
   });
 }
 
 // ---------- wiring ----------
 $('go').onclick = function () { make(); };
-$('again').onclick = function () { $('prompt').value = lastPrompt; make(); };
-$('save1').onclick = function () { savePng(1); };
-$('save32').onclick = function () { savePng(Math.round(512 / info.size)); };
-$('pal').onchange = function () { if (results.length) { showResults(); } };
+$('surprise').onclick = surprise;
+$('again').onclick = function () { if (lastPrompt && !$('prompt').value.trim()) $('prompt').value = lastPrompt; make(); };
+$('finish').onclick = finish;
+$('bottom').onclick = redrawBottom;
+$('blank').onclick = function () { newBlank(); toast(t('finishHelp')); };
+$('tPen').onclick = function () { setTool('pen'); };
+$('tErase').onclick = function () { setTool('erase'); };
+$('tFill').onclick = function () { setTool('fill'); };
+$('tPick').onclick = function () { setTool('pick'); };
+$('undo').onclick = undo;
+$('grid1').onclick = function () { var on = $('bigWrap').classList.toggle('gridlines'); this.classList.toggle('on', on); };
+$('outline').onclick = addOutline;
+$('flip').onclick = flip;
+$('save1').onclick = function () { output(canvasOf([editImg], 1)); };
+$('save32').onclick = function () { output(canvasOf([editImg], Math.round(512 / info.size))); };
+$('share').onclick = function () { output(canvasOf([editImg], Math.round(512 / info.size)), true); };
+$('sheet').onclick = function () { output(canvasOf(results, 8)); };
+$('pal').onchange = function () { if (results.length) showResults(); redrawEditor(); };
 $('temp').oninput = function () { $('tv').textContent = (+this.value).toFixed(1); };
 $('guide').oninput = function () { $('gv').textContent = this.value; };
+$('wordSearch').oninput = function () { renderWords(this.value); };
+$('clearHist').onclick = function () { store.set('history', []); drawHistory(); toast(t('cleared')); };
 $('lang').onclick = function () { lang = lang === 'en' ? 'fa' : 'en'; store.set('lang', lang); applyLang(); };
 $('prompt').onkeydown = function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!$('go').disabled) make(); } };
 $('import').onclick = function () {
   if (native) { native.pickModel(); return; }
   var inp = document.createElement('input'); inp.type = 'file';
-  inp.onchange = function () { inp.files[0].arrayBuffer().then(function (b) { info = null; startWorker(b); }); };
+  inp.onchange = function () { inp.files[0].arrayBuffer().then(function (b) { startWorker(b); }); };
   inp.click();
 };
 // called by the Android side after the user picked a model file
 window.onModelImported = function (ok) {
-  if (ok) { toast(t('imported')); info = null; results = []; $('results').classList.add('hidden'); $('detail').classList.add('hidden'); loadModel(); }
+  if (ok) { toast(t('imported')); info = null; results = []; editImg = null; $('results').classList.add('hidden'); loadModel(); }
   else showStatus(t('badFile'));
 };
 
