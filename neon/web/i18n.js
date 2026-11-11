@@ -31,7 +31,7 @@ const STR = {
   oops: ['Something went wrong in this game. It has been stopped safely.', 'در این بازی مشکلی پیش آمد و بازی با امنیت متوقف شد.'],
   aboutBody: ['NEON has no accounts, no ads, no tracking and never uses the internet. Your scores, levels, play time and the games you make stay on this phone. Reminders are created on the phone itself.', 'نئون حساب کاربری، تبلیغ و ردیابی ندارد و هرگز از اینترنت استفاده نمی‌کند. رکوردها، مرحله‌ها، زمان بازی و بازی‌هایی که می‌سازی فقط روی همین گوشی می‌مانند. یادآورها هم روی خود گوشی ساخته می‌شوند.'],
   remWeb: ['Reminders work in the Android app.', 'یادآورها در برنامهٔ اندروید کار می‌کنند.'], h: ['h', 'س'], m: ['m', 'د'], xp: ['XP', 'امتیاز'], keys: ['Keys: P1 WASD + Space · P2 arrows + Enter · Esc pauses', 'کلیدها: بازیکن ۱ WASD و Space · بازیکن ۲ جهت‌ها و Enter · Esc مکث'],
-  mods: ['TURBO', 'توربو'],
+  noStore: ['This browser blocks saving: your games last until you close it. Install the app to keep them.', 'این مرورگر اجازهٔ ذخیره نمی‌دهد: بازی‌هایت تا بستن آن می‌ماند. برای نگه داشتن، برنامه را نصب کن.'],
 };
 const fa = () => SET.lang == 'fa';
 const t = k => (STR[k] || [k, k])[fa() ? 1 : 0];

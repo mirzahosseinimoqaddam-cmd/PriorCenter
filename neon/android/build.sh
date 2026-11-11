@@ -26,6 +26,11 @@ cp build/base.apk build/unsigned.apk
 (cd build/dex && zip -q ../unsigned.apk classes.dex)
 "$BT/zipalign" -f -p 4 build/unsigned.apk build/aligned.apk
 "$BT/apksigner" sign --ks "$KS" --ks-pass "pass:$PASS" --key-pass "pass:$PASS" --ks-key-alias "$ALIAS" --out Neon.apk build/aligned.apk
+"$BT/apksigner" verify Neon.apk
+# launch checks: right package and Android version, and no internet access at all
+B="$("$BT/aapt2" dump badging Neon.apk)"
+echo "$B" | grep -E "^package:|^sdkVersion|^targetSdkVersion|^uses-permission"
+echo "$B" | grep -q "name='com.priorcenter.neon'" && echo "$B" | grep -q "targetSdkVersion:'35'" && ! echo "$B" | grep -q "android.permission.INTERNET" || { echo "APK launch check failed"; exit 1; }
 echo "Built $(pwd)/Neon.apk"
 
 if [ "${1:-}" = "--aab" ]; then
@@ -38,5 +43,7 @@ if [ "${1:-}" = "--aab" ]; then
   (cd build/module && zip -qr ../base.zip .)
   rm -f Neon.aab && java -jar "$BUNDLETOOL" build-bundle --modules=build/base.zip --output=Neon.aab
   jarsigner -keystore "$KS" -storepass "$PASS" -keypass "$PASS" -sigalg SHA256withRSA -digestalg SHA-256 Neon.aab "$ALIAS" >/dev/null
+  java -jar "$BUNDLETOOL" validate --bundle=Neon.aab >/dev/null && echo "bundletool: Neon.aab is valid"
+  java -jar "$BUNDLETOOL" dump manifest --bundle=Neon.aab | grep -E "package=|targetSdkVersion|uses-permission"
   echo "Built $(pwd)/Neon.aab"
 fi

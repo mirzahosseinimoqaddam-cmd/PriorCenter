@@ -8,8 +8,10 @@ const pick = a => a[Math.random() * a.length | 0];
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const hyp = Math.hypot, sgn = Math.sign, abs = Math.abs, cos = Math.cos, sin = Math.sin, atan2 = Math.atan2;
 const hash = s => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-function load(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d } catch (e) { return d } }
-function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) { } }
+// storage: localStorage when the browser allows it, else memory for this session (e.g. a page opened from a file)
+const MEM = {}; let STORE_OK = true;
+function load(k, d) { try { const s = localStorage.getItem(k); if (s != null) return JSON.parse(s) ?? d } catch (e) { STORE_OK = false } return k in MEM ? JSON.parse(MEM[k]) : d }
+function save(k, v) { MEM[k] = JSON.stringify(v); try { localStorage.setItem(k, MEM[k]) } catch (e) { STORE_OK = false } }
 
 const PALS = {
   SYNTH: ['#ff2bd6', '#00f0ff', '#fff01f', '#39ff14', '#b026ff'],

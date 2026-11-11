@@ -252,7 +252,7 @@ window.neonBack = () => { if (R) { if (PAUSED) quit(); else if (!$('#ov').hidden
 // ---- CREATE tab
 function sanitize(x) { // anything from a share code is untrusted
   if (!x || typeof x != 'object' || !E[x.e]) throw new Error('bad game');
-  const o = { id: Date.now(), name: String(x.name || 'SHARED GAME').slice(0, 28).toUpperCase(), e: x.e, pal: PALS[x.pal] ? x.pal : 'SYNTH', sp: clamp(+x.sp || 1, .5, 2), sz: clamp(+x.sz || 1, .5, 1.6), mods: Array.isArray(x.mods) ? x.mods.filter(m => MODS[m]).slice(0, 9) : [] };
+  const o = { id: Number.isFinite(x.id) && x.id > 0 ? x.id : Date.now(), name: String(x.name || 'SHARED GAME').slice(0, 28).toUpperCase(), e: x.e, pal: PALS[x.pal] ? x.pal : 'SYNTH', sp: clamp(+x.sp || 1, .5, 2), sz: clamp(+x.sz || 1, .5, 1.6), mods: Array.isArray(x.mods) ? x.mods.filter(m => MODS[m]).slice(0, 9) : [] };
   const [a, b] = nrOf(x.e); if (Number.isInteger(x.n) && x.n >= a && x.n <= b) o.n = x.n;
   if (E[x.mix] && x.mix != x.e) o.mix = x.mix;
   if (x.e == 'snake' && x.tron) { o.tron = 1; o.vs = 1 }
@@ -272,7 +272,7 @@ function importDlg() {
 }
 function creator(base) {
   const c = { name: 'MY NEON GAME', e: 'pong', mix: '', pal: 'SYNTH', sp: 1, sz: 1, n: 0, mods: [], ...base };
-  const eng = Object.entries(E).filter(([k]) => isOpen(k)).sort((a, b) => a[1].t.localeCompare(b[1].t)).map(([k, e]) => `<option value="${k}">${esc(e.t)}</option>`).join('');
+  const eng = Object.entries(E).sort((a, b) => a[1].t.localeCompare(b[1].t)).map(([k, e]) => `<option value="${k}">${esc(e.t)}</option>`).join('');
   const b = sheet(`<h2>${esc(t('create'))}</h2><div class=form>
     <label>${esc(t('name'))}<input id=cN maxlength=28></label>
     <label>${esc(t('game'))}<select id=cE>${eng}</select></label>
@@ -282,15 +282,19 @@ function creator(base) {
     <label>${esc(t('size'))} <output id=oZ></output><input id=cZ type=range min=.5 max=1.6 step=.1></label>
     <label>${esc(t('amount'))}<select id=cA></select></label>
     <label>${esc(t('effects'))}</label><div class=mods>${Object.entries(MODS).map(([k, v]) => `<label><input type=checkbox value=${k}>${esc(v)}</label>`).join('')}</div></div>`);
-  b.append(btn('✔ ' + esc(t('savePlay')), () => { const n = read(); saveMine(n); PR.made++; checkTrophies(); saveProg(); go_('make'); openGroup('mine', n.name) }, 'big'), btn('🎲 ' + esc(t('random')), () => fill(randomGame()), 'ghost'), btn(esc(t('cancel')), closeSheet, 'dim'));
+  const bar = document.createElement('div'); bar.className = 'bar';
+  bar.append(btn('▶ ' + esc(t('savePlay')), () => { const n = read(); saveMine(n); PR.made++; checkTrophies(); saveProg(); go_('make'); closeSheet(); startGame({ ...n, mine: 1 }, modesOf(n)[0]); if (!STORE_OK) toast(esc(t('noStore')), '#fff01f') }, 'big'),
+    btn('✔ ' + esc(t('save')), () => { const n = read(); saveMine(n); PR.made++; checkTrophies(); saveProg(); go_('make'); closeSheet(); toast('✔ ' + esc(n.name)); if (!STORE_OK) toast(esc(t('noStore')), '#fff01f') }, 'ghost'),
+    btn('🎲 ' + esc(t('random')), () => fill(randomGame()), 'ghost'), btn(esc(t('cancel')), closeSheet, 'dim'));
+  b.append(bar);
   const amt = (e, n) => { const [a, z] = nrOf(e); $('#cA').innerHTML = `<option value=0>${esc(t('dflt'))}</option>` + Array.from({ length: z - a + 1 }, (_, k) => `<option>${a + k}</option>`).join(''); $('#cA').value = n >= a && n <= z ? n : 0 };
   const sync = () => { $('#oS').textContent = '×' + $('#cS').value; $('#oZ').textContent = '×' + $('#cZ').value };
-  function fill(x) { $('#cN').value = x.name; $('#cE').value = isOpen(x.e) ? x.e : 'pong'; $('#cM').value = x.mix && isOpen(x.mix) ? x.mix : ''; $('#cP').value = x.pal || 'SYNTH'; $('#cS').value = x.sp || 1; $('#cZ').value = x.sz || 1; amt($('#cE').value, x.n); for (const i of $$('.mods input')) i.checked = (x.mods || []).includes(i.value); sync() }
+  function fill(x) { $('#cN').value = x.name; $('#cE').value = x.e; $('#cM').value = x.mix || ''; $('#cP').value = x.pal || 'SYNTH'; $('#cS').value = x.sp || 1; $('#cZ').value = x.sz || 1; amt($('#cE').value, x.n); for (const i of $$('.mods input')) i.checked = (x.mods || []).includes(i.value); sync() }
   function read() {
     const n = +$('#cA').value, x = { id: c.id || Date.now(), name: ($('#cN').value.trim() || 'MY NEON GAME').toUpperCase(), e: $('#cE').value, pal: $('#cP').value, sp: +$('#cS').value, sz: +$('#cZ').value, mods: $$('.mods input:checked').map(i => i.value) };
     if (n) x.n = n; if ($('#cM').value && $('#cM').value != x.e) x.mix = $('#cM').value;
     if (c.tron && x.e == 'snake') { x.tron = 1; x.vs = 1 }
-    return x;
+    return sanitize(Object.assign(x, { id: c.id || Date.now() })); // same checks as an imported code
   }
   $('#cE').onchange = () => amt($('#cE').value, 0); $('#cS').oninput = $('#cZ').oninput = sync;
   fill(c);

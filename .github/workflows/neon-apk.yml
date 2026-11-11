@@ -51,6 +51,12 @@ jobs:
           NEON_KEY_PASS: ${{ secrets.NEON_KEY_PASS }}
           NEON_KEY_ALIAS: ${{ secrets.NEON_KEY_ALIAS }}
         run: bash neon/android/build.sh --aab
+      - name: Attach the bundle to the release
+        if: hashFiles('neon/android/Neon.aab') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload neon-latest neon/android/Neon.aab --clobber
       - uses: actions/upload-artifact@v4
         if: always()
         with:
